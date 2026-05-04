@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config>
+        <trust-anchors>
+            <!-- Trust a specific file in res/raw/my_ca.crt -->
+            <certificates src="@raw/root_ca"/> 
+            <!-- System certificates -->
+            <certificates src="system" />
+            <!-- user's manually installed certificates -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

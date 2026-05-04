@@ -1,0 +1,16 @@
+{
+  "appId": "com.video_conference_vite",
+  "appName": "video_conference_vite",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  },
+  "server": {
+    "cleartext": true,
+    "allowNavigation": [
+      "*"
+    ]
+  }
+}

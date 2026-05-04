@@ -1,0 +1,149 @@
+import { Socket } from "phoenix"
+import { StreamMessageParser } from "@/streamMessageParser.js"
+
+const streamServerHost = import.meta.env.VITE_STREAM_SERVER_HOST
+const streamServerPort = import.meta.env.VITE_STREAM_SERVER_PORT
+const streamServerCertHash = import.meta.env.VITE_STREAM_SERVER_CERT_HASH
+
+
+export class StreamServer {
+  constructor(path, authToken) {
+    this.streamServer = null;
+    this.streamServerHost = streamServerHost;
+    this.streamServerPort = streamServerPort;
+    this.streamServerCertHash = streamServerCertHash;
+
+    this.path = path;
+    this.uri = `https://${this.streamServerHost}:${this.streamServerPort}/${this.path}?auth_token=${authToken}`;
+
+    this.streamWriter = Promise.withResolvers();
+    this.streamReader = Promise.withResolvers();
+    this.connected = false;
+    this.reconnecting = false;
+    this.disconnected = false;
+
+  }
+
+  async connect() {
+    if (this.connected) return;
+
+    this.disconnected = false;
+
+    try {
+      this.streamWriter = Promise.withResolvers();
+      this.streamReader = Promise.withResolvers();
+
+      if (this.streamServerCertHash) {
+        console.info("serverCertificateHashes is set for WebTransportStreamConnection")
+        // When self signed certificate is used
+        this.streamServer = new WebTransport(this.uri, {
+          serverCertificateHashes: [
+            {
+              algorithm: "sha-256",
+              value: this.#hexToBytes(this.streamServerCertHash)
+            }
+          ]
+        });
+      } else {
+        this.streamServer = new WebTransport(this.uri);
+      }
+
+      await this.streamServer.ready;
+
+      const streamServerStream = await this.streamServer.createBidirectionalStream();
+
+
+      const writer = streamServerStream.writable.getWriter();
+      this.streamWriter.resolve(writer);
+
+      const streamReaderStream = streamServerStream.readable.pipeThrough(
+        new TransformStream(new StreamMessageParser(1024 * 1024)) // 1MB buffer
+      );
+
+      const reader = streamReaderStream.getReader()
+      this.streamReader.resolve(reader)
+
+      console.info(`connected to ${this.uri}`)
+
+      this.connected = true
+      this.reconnecting = false;
+
+
+    } catch (error) {
+      this.streamWriter.reject(error);
+      this.streamReader.reject(error);
+
+      this.#reconnect();
+      console.error(`Error: ${error}`);
+    }
+  }
+
+  #hexToBytes(hexString) {
+    const cleanHex = hexString.replace(/[:\s]/g, '');
+    const bytes = new Uint8Array(cleanHex.length / 2);
+    for (let i = 0; i < cleanHex.length; i += 2) {
+      bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+    }
+    return bytes;
+  }
+
+  async write(data) {
+    if (this.disconnected) return;
+
+    try {
+      const writer = await this.streamWriter.promise;
+      await writer.write(data);
+    } catch (error) {
+
+      if (error instanceof WebTransportError && error.message === 'Received STOP_SENDING.') {
+        this.disconnected = true
+        console.info(error);
+      } else {
+        console.error(`Error: ${error}`);
+        if (this.reconnecting === false && this.disconnected === false) { this.#reconnect(); }
+      }
+    }
+  }
+
+
+  async reader(callback) {
+    while (true) {
+      try {
+        if (this.disconnected) break;
+
+        const reader = await this.streamReader.promise;
+        const { value, done } = await reader.read();
+
+        if (done) break;
+
+        callback(value);
+      } catch (error) {
+        if (this.reconnecting === false && this.disconnected === false) {
+          console.error(`Cannot read. Reconnecting... Error: ${error}`);
+          await this.#reconnect();
+        }
+      }
+    }
+
+  }
+
+  async #reconnect() {
+    this.reconnecting = true;
+    this.connected = false;
+
+    await this.connect()
+  }
+
+  async disconnect(reason = "disconnected", code = 0) {
+    this.disconnected = true;
+
+    await this.streamServer.close({
+      closeCode: code,
+      reason: reason
+    });
+
+
+  }
+
+
+}

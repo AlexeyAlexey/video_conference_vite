@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">video_conference_vite</string>
+    <string name="title_activity_main">video_conference_vite</string>
+    <string name="package_name">com.video_conference_vite</string>
+    <string name="custom_url_scheme">com.video_conference_vite</string>
+</resources>

@@ -1,0 +1,17 @@
+import { streamServer } from "@/streamServer.js"
+
+class Switchboard {
+  constructor() {
+
+
+  }
+
+  call(phoneCall) {
+
+
+  }
+
+
+}
+
+export const switchboard = new Switchboard();

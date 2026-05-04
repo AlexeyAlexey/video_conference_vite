@@ -1,0 +1,42 @@
+<div class="min-h-screen bg-base-200">
+  <div class="max-w-4xl mx-auto p-4 space-y-4">
+    <div class="navbar bg-base-100 rounded-box">
+      <div class="ml-auto dropdown dropdown-end">
+        <button id="accountBtn" aria-label="Account menu" style="anchor-name:--account-anchor"
+          class="btn btn-ghost">Account</button>
+        <ul id="account-dd" popover="auto"
+          style="position-anchor: --account-anchor; top: anchor(bottom); left: anchor(right); transform: translateX(-100%); margin-top: 0.25rem;"
+          class="dropdown-content menu bg-base-100 rounded-box z-10 w-40 p-2 shadow">
+          <li><a href="/register-phone">Register</a></li>
+          <li><a href="/log-in">Log in</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="max-w-md mx-auto">
+      <div class="card bg-base-100 shadow">
+        <div class="card-body">
+          <h2 class="card-title">Log In</h2>
+          <form class="space-y-3" action="#" method="post" id="logInByPhone">
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Phone</span>
+              </label>
+              <input name="phone" type="number" inputmode="numeric" min="1" max="10000000" placeholder="Enter a number"
+                class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Password</span>
+              </label>
+              <input name="password" type="password" minlength="3" required placeholder="••••••••"
+                class="input input-bordered w-full" required />
+            </div>
+            <div class="form-control pt-2">
+              <button type="submit" class="btn btn-primary w-full">Log in</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
