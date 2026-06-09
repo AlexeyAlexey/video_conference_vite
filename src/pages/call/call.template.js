@@ -89,7 +89,10 @@ export default function template(props = {}) {
   const phoneCall = new PhoneCall(
     phone,
     toPhone,
-    props.switchboard_auth_token,
+    props.switchboard_video_uri,
+    props.switchboard_video_server_cert_hash,
+    props.switchboard_audio_uri,
+    props.switchboard_audio_server_cert_hash,
     remoteUserVideoElement,
     callerUserVideoElement,
     {

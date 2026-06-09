@@ -11,13 +11,15 @@ import { eventDispatcher } from '@/eventDispatcher.js'
 // caller
 // receiver
 export class PhoneCall {
-  constructor(phone, toPhone, authToken, remoteUserVideoElement, callerUserVideoElement, opts = {}) {
+  constructor(phone, toPhone, switchboardVideoUri, switchboardVideoServerCertHash = null, switchboardAudioUri, switchboardAudioServerCertHash = null, remoteUserVideoElement, callerUserVideoElement, opts = {}) {
     this.phone = phone;
     this.toPhone = toPhone;
-    this.authToken = authToken;
 
-    this.videoStream = new StreamServer('video', authToken);
-    this.audioStream = new StreamServer('audio', authToken);
+    this.switchboardVideoUri = switchboardVideoUri;
+    this.switchboardAudioUri = switchboardAudioUri;
+
+    this.videoStream = new StreamServer(switchboardVideoUri, switchboardVideoServerCertHash);
+    this.audioStream = new StreamServer(switchboardAudioUri, switchboardAudioServerCertHash);
 
     this.remoteUserPlayer = new RemoteUserPlayer(remoteUserVideoElement);
 

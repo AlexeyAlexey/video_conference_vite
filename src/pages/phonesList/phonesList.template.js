@@ -6,11 +6,10 @@ import { render, goTo, initRouter } from '@/router'
 // import { eventDispatcher } from '../../eventDispatcher.js'
 
 
-function call(phone) {
-  phoneChannel.channel.push("call", { to: Number(phone) })
+function call(host, phone) {
+  phoneChannel.channel.push("call", { to_host: host, to: Number(phone) })
     .receive("ok", (payload) => {
       render('/call', payload)
-      // switchboard_auth_token: 'eDBHdk', to: 123
     })
     .receive("error", err => console.error("phoenix errored", err))
     .receive("timeout", () => console.error("timed out pushing"))
@@ -31,7 +30,7 @@ export default function template(props = {}) {
 
       callButtons.forEach(btn => {
         btn.addEventListener('click', () => {
-          call(event.currentTarget.dataset.phone)
+          call(event.currentTarget.dataset.host, event.currentTarget.dataset.phone)
           // console.log(event.currentTarget.dataset)
           // console.log(event.currentTarget.dataset.phone)
         });

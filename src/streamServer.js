@@ -1,20 +1,12 @@
 import { Socket } from "phoenix"
 import { StreamMessageParser } from "@/streamMessageParser.js"
 
-const streamServerHost = import.meta.env.VITE_STREAM_SERVER_HOST
-const streamServerPort = import.meta.env.VITE_STREAM_SERVER_PORT
-const streamServerCertHash = import.meta.env.VITE_STREAM_SERVER_CERT_HASH
-
-
 export class StreamServer {
-  constructor(path, authToken) {
+  constructor(uri, streamServerCertHash) {
     this.streamServer = null;
-    this.streamServerHost = streamServerHost;
-    this.streamServerPort = streamServerPort;
     this.streamServerCertHash = streamServerCertHash;
 
-    this.path = path;
-    this.uri = `https://${this.streamServerHost}:${this.streamServerPort}/${this.path}?auth_token=${authToken}`;
+    this.uri = uri;
 
     this.streamWriter = Promise.withResolvers();
     this.streamReader = Promise.withResolvers();
