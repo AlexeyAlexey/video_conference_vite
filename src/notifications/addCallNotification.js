@@ -2,9 +2,10 @@ import { phoneChannel } from '@/channels/phoneChannel.js'
 import { render } from '@/router'
 
 
-export function addCallNotification({ from_host, from }) {
+export function addCallNotification({ from_host, from }, opts = {}) {
   const container = document.getElementById('notifications');
   const el = document.createElement('div');
+  var audio = null;
 
   el.setAttribute('role', 'alert');
   el.className = 'alert alert-vertical bg-base-100 shadow w-full max-w-full relative';
@@ -32,15 +33,32 @@ export function addCallNotification({ from_host, from }) {
           </div>
         `;
 
+  if (opts.audio) {
+    audio = new Audio(`/audio/${opts.audio}`);
+  }
+
+  // Destroy it after it ends
+  audio?.addEventListener('ended', function () {
+    audio.remove(); // Removes it from the DOM (if appended)
+    audio = null;   // Frees up memory for garbage collection
+  });
+
   el.addEventListener('click', (e) => {
     const btn = e.target.closest('button[data-action]');
     if (!btn) return;
     const action = btn.getAttribute('data-action');
     if (action === 'close') {
+      audio?.pause();
+      audio?.remove();
+      audio = null;
       el.remove();
       return;
     }
     if (action === 'answer') {
+      audio?.pause();
+      audio?.remove();
+      audio = null;
+
       phoneChannel.channel.push("income_call", { from_host: from_host, from: from })
         .receive("ok", (payload) => {
           render('/call', {
@@ -57,10 +75,17 @@ export function addCallNotification({ from_host, from }) {
       return;
     }
     if (action === 'reject') {
+      audio?.pause();
+      audio?.remove();
+      audio = null;
+
       console.log('Rejecting call from', name);
       el.remove();
       return;
     }
   }, { passive: true });
+
   container.appendChild(el);
+  audio?.play()
+  setTimeout(() => el.remove(), 26000)
 };

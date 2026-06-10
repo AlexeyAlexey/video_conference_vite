@@ -30,6 +30,10 @@ class PhoneChannel {
     this.channel.on("income_call", payload => {
       eventDispatcher.emit("income-call", payload)
     });
+
+    this.channel.on("current_income_calls", payload => {
+      eventDispatcher.emit("current-income-calls", payload)
+    });
   }
 }
 
