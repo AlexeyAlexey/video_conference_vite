@@ -1,0 +1,26 @@
+<dialog id="${props.dialogId}" class="${props.className}">
+  <div class="modal-box">
+    <form method="dialog">
+      <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+    </form>
+    <h3 class="font-bold text-lg mb-4">Add contact</h3>
+    <form method="post" id="${props.formId}">
+      <input type="hidden" id="contact_host_id" name="host_id" value="" />
+      <div class="form-control w-full mb-3">
+        <label class="label"><span class="label-text">Name</span></label>
+        <input type="text" class="input input-bordered w-full" id="contact_name" name="name" required />
+      </div>
+      <div class="form-control w-full mb-4">
+        <label class="label"><span class="label-text">Number</span></label>
+        <input type="number" class="input input-bordered w-full" id="contact_phone" name="phone" min="1" max="10000000"
+          required />
+      </div>
+      <div class="modal-action">
+        <button class="btn" type="submit">Save</button>
+      </div>
+    </form>
+  </div>
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>

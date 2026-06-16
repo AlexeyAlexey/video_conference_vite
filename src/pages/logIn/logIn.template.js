@@ -16,13 +16,6 @@ export default function template(props = {}) {
     const data = Object.fromEntries(formData.entries());
 
     logInByPhoneApi(data).then((response) => {
-      // globalThis.authToken = response.auth_token
-      // globalThis.phone = data.phone
-      // localStorage.setItem('autToken', response.auth_token);
-      // localStorage.setItem('phone', data.phone);
-
-      // managerWS.connect(response.auth_token);
-      // phoneChannel.join(data.phone)
 
       storage.saveAuthToken(response.auth_token)
       storage.save('phone', data.phone)

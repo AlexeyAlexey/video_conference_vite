@@ -2,29 +2,28 @@ const apiServerProtocol = import.meta.env.VITE_MANAGER_HTTP_SERVER_PROTOCOL
 const apiServerHost = import.meta.env.VITE_MANAGER_SERVER_HOST
 const apiServerPort = import.meta.env.VITE_MANAGER_HTTP_SERVER_PORT
 const apiServer = `${apiServerProtocol}://${apiServerHost}:${apiServerPort}`
+const headers = { 'Content-Type': 'application/json' }
 
-
-const baseFetch = (path, config = {}, params) => {
+const baseFetch = (path, params, config = {}) => {
   return new Promise((resolve, reject) => {
+    var url = `${apiServer}${path}`;
+    const _headers = { ...config.headers, ...headers };
+
     try {
       const _config = {
         ...config
       }
-      if (params) {
+
+      if (params && config.method == 'GET') {
+        url = `${url}?${new URLSearchParams(params)}`
+      }
+      else {
         _config['body'] = JSON.stringify(params)
       }
 
-      console.log({
+      window.fetch(url, {
         ..._config,
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      window.fetch(`${apiServer}${path}`, {
-        ..._config,
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        headers: _headers
       }).then(response => response.json())
         .then(resolve, reject)
     } catch (e) {
@@ -34,34 +33,49 @@ const baseFetch = (path, config = {}, params) => {
 }
 
 const fetchGet = (url, params = {}, config = {}) => {
-  return baseFetch(url, params, config)
+  return baseFetch(url,
+    params,
+    {
+      ...config,
+      method: 'GET'
+    },)
 }
 
 const fetchPost = (url, params = {}, config = {}) => {
-  return baseFetch(url, {
-    ...config,
-    method: 'POST'
-  }, params)
+  return baseFetch(url,
+    params,
+    {
+      ...config,
+      method: 'POST'
+    })
 }
 
 const fetchPut = (url, params = {}, config = {}) => {
-  return baseFetch(url, {
-    ...config,
-    method: 'PUT'
-  }, params)
+  return baseFetch(url,
+    params,
+    {
+      ...config,
+      method: 'PUT'
+    },)
 }
 const fetchPatch = (url, params = {}, config = {}) => {
-  return baseFetch(url, {
-    ...config,
-    method: 'PATCH'
-  }, params)
+  return baseFetch(url,
+    params,
+    {
+      ...config,
+      method: 'PATCH'
+    },
+  )
 }
 
 const fetchDelete = (url, params = {}, config = {}) => {
-  return baseFetch(url, {
-    ...config,
-    method: 'DELETE'
-  }, params)
+  return baseFetch(url,
+    params,
+    {
+      ...config,
+      method: 'DELETE'
+    },
+  )
 }
 
 export default {
