@@ -1,5 +1,6 @@
 import { registerPhoneApi } from '@/api/registerPhoneApi.js'
 import { managerWS } from '@/managerWS.js'
+import { render } from '@/router'
 // import { phoneChannel } from '../../channels/phoneChannel.js'
 
 export default function template(props = {}) {
@@ -35,10 +36,13 @@ export default function template(props = {}) {
     // console.log(data)
 
     registerPhoneApi(data).then((response) => {
-      console.log(response)
+
       localStorage.setItem('autToken', response.auth_token);
 
       managerWS.connect(response.auth_token);
+
+      render('/phones');
+
 
     })
       .catch(e => console.error(e))

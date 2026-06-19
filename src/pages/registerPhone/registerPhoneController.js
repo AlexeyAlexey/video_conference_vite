@@ -1,5 +1,5 @@
 import { Controller } from '@/controller.js'
-import html from '@/pages/registerPhone/registerPhone.template.html'
+import html from '@/pages/registerPhone/registerPhone.template.html?tpl'
 import js from '@/pages/registerPhone/registerPhone.template.js'
 
 export class RegisterPhoneController extends Controller {

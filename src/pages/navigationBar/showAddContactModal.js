@@ -1,4 +1,4 @@
-import partialAddContactModal from '@/pages/navigationBar/_addContactModal.template.html'
+import partialAddContactModal from '@/pages/navigationBar/_addContactModal.template.html?tpl'
 import { addPhoneToPhoneBookApi } from '@/api/addPhoneToPhoneBookApi.js'
 import { render } from '@/router'
 

@@ -12,7 +12,7 @@ I want to have PWA at the end
 
 ![phones list](github_imgs/phones-list.png)
 
-![calling page](github_imgs/calling-page.png)
+![calling notification](github_imgs/calling.png)
 
 ![call page](github_imgs/call-page.png)
 
@@ -34,3 +34,7 @@ npm run build
 
 npx cap copy android
 
+
+
+./gen_release.sh "/absolute/path/to/local/folder"
+./gen_release.sh "/home/alexey/Documents/elixir/videoconference_vite/video_conference_vite_rels"

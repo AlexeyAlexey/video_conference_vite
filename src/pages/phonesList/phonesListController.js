@@ -1,5 +1,5 @@
 import { Controller } from '@/controller.js'
-import html from '@/pages/phonesList/phonesList.template.html'
+import html from '@/pages/phonesList/phonesList.template.html?tpl'
 import js from '@/pages/phonesList/phonesList.template.js'
 import { initAppIfRequired } from '@/initAppIfRequired.js'
 import { render } from '@/router.js'

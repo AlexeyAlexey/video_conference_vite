@@ -1,4 +1,4 @@
-import html from '@/pages/navigationBar/navigationBar.template.html'
+import html from '@/pages/navigationBar/navigationBar.template.html?tpl'
 import { showAddContactModal } from '@/pages/navigationBar/showAddContactModal.js'
 
 

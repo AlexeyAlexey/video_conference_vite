@@ -37,6 +37,13 @@ export function addCallNotification({ from_host, from }, opts = {}) {
     audio = new Audio(`/audio/${opts.audio}`);
   }
 
+  const stopAudio = () => {
+    audio?.pause();
+    audio?.remove();
+    audio = null;
+    el.remove();
+  }
+
   // Destroy it after it ends
   audio?.addEventListener('ended', function () {
     audio.remove(); // Removes it from the DOM (if appended)
@@ -48,16 +55,11 @@ export function addCallNotification({ from_host, from }, opts = {}) {
     if (!btn) return;
     const action = btn.getAttribute('data-action');
     if (action === 'close') {
-      audio?.pause();
-      audio?.remove();
-      audio = null;
-      el.remove();
+      stopAudio();
       return;
     }
     if (action === 'answer') {
-      audio?.pause();
-      audio?.remove();
-      audio = null;
+      stopAudio();
 
       phoneChannel.channel.push("income_call", { from_host: from_host, from: from })
         .receive("ok", (payload) => {
@@ -75,12 +77,9 @@ export function addCallNotification({ from_host, from }, opts = {}) {
       return;
     }
     if (action === 'reject') {
-      audio?.pause();
-      audio?.remove();
-      audio = null;
-
+      stopAudio();
       console.log('Rejecting call from', name);
-      el.remove();
+
       return;
     }
   }, { passive: true });

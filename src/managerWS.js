@@ -9,7 +9,7 @@ class ManagerWS {
     this.managerServerProtocol = managerServerProtocol;
     this.managerServerHost = managerServerHost;
     this.managerServerPort = managerServerPort;
-    this.managerServerUri = `${this.managerServerProtocol}://${this.managerServerHost}:4000/socket/phone`;
+    this.managerServerUri = `${this.managerServerProtocol}://${this.managerServerHost}:${this.managerServerPort}/socket/phone`;
     this.socket = null;
 
   }

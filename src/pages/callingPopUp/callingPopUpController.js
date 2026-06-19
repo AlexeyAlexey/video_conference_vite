@@ -3,7 +3,7 @@ import { initAppIfRequired } from '@/initAppIfRequired.js'
 import { render } from '@/router.js'
 import { authenticated } from '@/authenticated.js'
 
-import html from '@/pages/callingPopUp/callingPopUp.template.html'
+import html from '@/pages/callingPopUp/callingPopUp.template.html?tpl'
 import js from '@/pages/callingPopUp/callingPopUp.template.js'
 
 

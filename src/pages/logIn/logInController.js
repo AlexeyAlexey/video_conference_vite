@@ -1,7 +1,9 @@
 import { Controller } from '@/controller.js'
-import html from '@/pages/logIn/logIn.template.html'
+import html from '@/pages/logIn/logIn.template.html?tpl'
 import js from '@/pages/logIn/logIn.template.js'
 import { AuthToken } from '@/authToken.js'
+import { render } from '@/router.js'
+import { authenticated } from '@/authenticated.js'
 
 export class LogInController extends Controller {
   constructor(opts = {}) {
@@ -9,7 +11,11 @@ export class LogInController extends Controller {
   }
 
   call() {
-    this.draw()
+    if (authenticated()) {
+      render('/phones');
+    } else {
+      this.draw();
+    }
   }
 
   draw() {

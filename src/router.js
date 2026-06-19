@@ -26,6 +26,7 @@ import { CallingPopUpController } from '@/pages/callingPopUp/callingPopUpControl
 
 const routes = {
   '/register-phone': RegisterPhoneController,
+  '/': LogInController,
   '/log-in': LogInController,
   '/phones': PhonesListController,
   '/call': CallController,

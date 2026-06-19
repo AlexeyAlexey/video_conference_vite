@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-import TemplateLoader from './plugins/template-plugin'
+import templateLoader from './plugins/template-plugin'
 import path from 'path';
 
 export default defineConfig({
@@ -11,6 +11,10 @@ export default defineConfig({
     },
     plugins: [
         tailwindcss(),
-        TemplateLoader(),
+        // templateLoader(),
+        {
+            ...templateLoader(),
+            enforce: 'pre'
+        }
     ]
 });

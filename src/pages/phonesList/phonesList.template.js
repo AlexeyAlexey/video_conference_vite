@@ -1,7 +1,7 @@
 import { managerWS } from "@/managerWS"
 // import { showAddContactModal } from '@/pages/navigationBar/showAddContactModal.js'
 import { phoneChannel } from '@/channels/phoneChannel.js'
-import partialPhone from '@/pages/phonesList/_phone.template.html'
+import partialPhone from '@/pages/phonesList/_phone.template.html?tpl'
 import { render, goTo, initRouter } from '@/router'
 import { addNavigationBar } from '@/pages/navigationBar/addNavigationBar.js'
 import { listPhonesFromPhoneBookApi } from '@/api/listPhonesFromPhoneBookApi.js'
@@ -19,6 +19,7 @@ function call(hostId, phone) {
 
   phoneChannel.channel.push("call", params)
     .receive("ok", (payload) => {
+
       render('/call', payload)
     })
     .receive("error", err => console.error("phoenix errored", err))
@@ -30,8 +31,6 @@ export default function template(props = {}) {
 
 
   listPhonesFromPhoneBookApi().then((response) => {
-    console.log(response)
-
     response.forEach((phone) => {
       phonesList.insertAdjacentHTML('beforeend',
         partialPhone({

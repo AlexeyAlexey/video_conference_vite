@@ -57,6 +57,8 @@ export default function template(props = {}) {
     try { vid.releasePointerCapture?.(e.pointerId); } catch (_) { }
   }
 
+  layoutBottomRight();
+
   // Initialize after layout
   window.addEventListener('load', layoutBottomRight, { once: true });
   window.addEventListener('resize', layoutBottomRight);
