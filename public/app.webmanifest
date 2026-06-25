@@ -1,4 +1,5 @@
 {
   "name": "Video conference",
-  "display": "fullscreen"
+  "start_url": "/",
+  "display": "standalone"
 }
