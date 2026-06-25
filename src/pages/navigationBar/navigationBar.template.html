@@ -1,4 +1,14 @@
-<details id="navBarActionMenu" class="dropdown dropdown-end">
+<div></div>
+<details id="navBarPageMenu" class="dropdown dropdown-center justify-self-center">
+  <summary class="btn btn-ghost" aria-label="Open navigation">Menu</summary>
+  <div class="menu-overlay fixed inset-0 bg-base-300/40 hidden z-40"
+    onclick="this.closest('details').removeAttribute('open')"></div>
+  <ul class="menu dropdown-content bg-base-100 rounded-box shadow z-30 mt-2 w-52">
+    <li><a id="navPhonesList">Phones List</a></li>
+    <li><a id="navSharedLinks">Shared Links</a></li>
+  </ul>
+</details>
+<details id="navBarActionMenu" class="dropdown dropdown-end justify-self-end">
   <summary class="btn btn-ghost btn-circle" aria-label="Open menu">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
       <circle cx="12" cy="5" r="1.75" />
@@ -8,8 +18,7 @@
   </summary>
   <div class="menu-overlay fixed inset-0 bg-base-300/40 hidden z-10"
     onclick="this.closest('details').removeAttribute('open')"></div>
-  <ul class="menu dropdown-content bg-base-100 rounded-box shadow z-30 mt-2 w-52">
-    <li><button id="showAddContactModel" type="button">+
-        Add contact</button></li>
+  <ul id="navBarActionMenuItems" class="menu dropdown-content bg-base-100 rounded-box shadow z-30 mt-2 w-52">
+
   </ul>
 </details>

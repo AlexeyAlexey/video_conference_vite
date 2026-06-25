@@ -22,6 +22,7 @@ import { LogInController } from '@/pages/logIn/logInController.js'
 import { PhonesListController } from '@/pages/phonesList/phonesListController.js'
 import { CallController } from '@/pages/call/callController.js'
 import { CallingPopUpController } from '@/pages/callingPopUp/callingPopUpController.js'
+import { SharedLinkController } from '@/pages/sharedLinks/sharedLinkController.js'
 
 
 const routes = {
@@ -30,6 +31,7 @@ const routes = {
   '/log-in': LogInController,
   '/phones': PhonesListController,
   '/call': CallController,
+  '/shared-links': SharedLinkController,
   '/calling-pop-up': CallingPopUpController,
   currentController: null
 };

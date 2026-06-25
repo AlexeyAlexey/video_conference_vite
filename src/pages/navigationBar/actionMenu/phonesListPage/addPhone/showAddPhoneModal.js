@@ -1,11 +1,11 @@
-import partialAddContactModal from '@/pages/navigationBar/_addContactModal.template.html?tpl'
+import partialAddPhoneModal from '@/pages/navigationBar/actionMenu/phonesListPage/addPhone/_addPhoneModal.template.html?tpl'
 import { addPhoneToPhoneBookApi } from '@/api/addPhoneToPhoneBookApi.js'
 import { render } from '@/router'
 
 
-export function showAddContactModal(opts = {}) {
+export function showAddPhoneModal(opts = {}) {
   const container = document.getElementById('modal');
-  const el = partialAddContactModal({
+  const el = partialAddPhoneModal({
     dialogId: 'addContactModal',
     formId: 'addContactModalForm',
     className: 'modal'
@@ -22,9 +22,6 @@ export function showAddContactModal(opts = {}) {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-
-
-
 
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());

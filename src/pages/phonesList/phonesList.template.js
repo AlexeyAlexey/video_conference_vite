@@ -55,7 +55,7 @@ export default function template(props = {}) {
   }).catch(e => console.error(e))
 
 
-  addNavigationBar();
+  addNavigationBar({ pageName: 'phonesList' });
 
   // // sync dropdown overlay with details open state
   // const details = document.getElementById('navBarActionMenu');
