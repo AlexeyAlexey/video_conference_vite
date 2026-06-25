@@ -1,6 +1,7 @@
 import html from '@/pages/navigationBar/navigationBar.template.html?tpl'
 // import { showAddContactModal } from '@/pages/navigationBar/showAddContactModal.js'
 import addPhonesListActionMenu from '@/pages/navigationBar/actionMenu/phonesListPage/add.js'
+import addSharedLinksMenu from '@/pages/navigationBar/actionMenu/sharedLinksPage/add.js'
 import { render } from '@/router'
 
 
@@ -23,9 +24,6 @@ function setActiveNavBarPageMenu(itemId) {
 
   const a = document.getElementById(itemId);
   const li = a.closest('li');
-
-  console.log(a)
-  console.log(li)
 
   li && li.classList.add('active');
   a.setAttribute('aria-current', 'page');
@@ -72,6 +70,7 @@ export function addNavigationBar(opts = {}) {
 
     case 'sharedLinks':
       setActiveNavBarPageMenu('navSharedLinks');
+      addSharedLinksMenu();
       break;
 
     default:
