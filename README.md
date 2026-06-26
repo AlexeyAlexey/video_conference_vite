@@ -5,27 +5,46 @@ It is a prototype. I use vite + js vanilla for fun
 I want to have PWA at the end
 
 
-
+**Register**
 ![register page](github_imgs/register.png)
+
+**LogIn**
 
 ![Log In page](github_imgs/log-in.png)
 
+**Phones List**
 ![phones list](github_imgs/phones-list.png)
 
+
+**Call Notification**
 ![calling notification](github_imgs/calling.png)
 
+**One to One Call**
 ![call page](github_imgs/call-page.png)
 
+**Page Menu**
 ![page menu](github_imgs/page-menu.png)
 
+
+**Action Menu**
 ![action menu](github_imgs/action-menu.png)
 
 
 ## shared links (mocked)
 
+**double click on field to edit**
 ![double click on field to edit](github_imgs/double-click-on-field-to-edit.png)
 
+
+**swipe left to remove**
 ![swipe left to remove](github_imgs/swipe-left-to-remove.png)
+
+
+**Shared Links Action menu**
+![swipe left to remove](github_imgs/shared-link-action-menu.png)
+
+**Shared Links Generate Link Modal Form**
+![swipe left to remove](github_imgs/shared-link-modal-form.png)
 
 
 https://v2.vitejs.dev/guide/#command-line-interface
