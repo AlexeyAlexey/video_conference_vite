@@ -16,6 +16,17 @@ I want to have PWA at the end
 
 ![call page](github_imgs/call-page.png)
 
+![page menu](github_imgs/page-menu.png)
+
+![action menu](github_imgs/action-menu.png)
+
+
+## shared links (mocked)
+
+![double click on field to edit](github_imgs/double-click-on-field-to-edit.png)
+
+![swipe left to remove](github_imgs/swipe-left-to-remove.png)
+
 
 https://v2.vitejs.dev/guide/#command-line-interface
 
