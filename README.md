@@ -38,6 +38,7 @@ npx cap copy android
 add '?tpl' at the end of a file name when file is required to be imported as a template
 
 
+TODO escape input template parameters [Cross-site scripting (XSS)](https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/XSS)
 
 ./gen_release.sh "/absolute/path/to/local/folder"
 ./gen_release.sh "/home/alexey/Documents/elixir/videoconference_vite/video_conference_vite_rels"
