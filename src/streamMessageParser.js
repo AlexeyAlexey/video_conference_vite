@@ -28,7 +28,7 @@ export class StreamMessageParser {
 
       // Reading payload length
       const view = new DataView(this.buffer.buffer, this.buffer.byteOffset + pos);
-      const payloadLength = view.getUint32(2, false); // Начинаем со 2-го байта
+      const payloadLength = view.getUint32(2, false); // start with the second byte
       // console.log(`payloadLength ${payloadLength}`)
 
 
