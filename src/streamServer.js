@@ -13,17 +13,19 @@ export class StreamServer {
     this.connected = false;
     this.reconnecting = false;
     this.disconnected = false;
+    this.recentReconnectionTimeAttempt = null;
 
   }
 
   async connect() {
     if (this.connected) return;
 
-    this.disconnected = false;
+    // this.disconnected = false;
 
     try {
       this.streamWriter = Promise.withResolvers();
       this.streamReader = Promise.withResolvers();
+
 
       if (this.streamServerCertHash) {
         console.info("serverCertificateHashes is set for WebTransportStreamConnection")
@@ -65,8 +67,7 @@ export class StreamServer {
       this.streamWriter.reject(error);
       this.streamReader.reject(error);
 
-      this.#reconnect();
-      console.error(`Error: ${error}`);
+      this.#reconnect(`Connect failed. Error ${error}`);
     }
   }
 
@@ -84,6 +85,7 @@ export class StreamServer {
 
     try {
       const writer = await this.streamWriter.promise;
+
       await writer.write(data);
     } catch (error) {
 
@@ -91,8 +93,8 @@ export class StreamServer {
         this.disconnected = true
         console.info(error);
       } else {
-        console.error(`Error: ${error}`);
-        if (this.reconnecting === false && this.disconnected === false) { this.#reconnect(); }
+
+        if (this.reconnecting === false && this.disconnected === false) { this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`); }
       }
     }
   }
@@ -104,22 +106,36 @@ export class StreamServer {
         if (this.disconnected) break;
 
         const reader = await this.streamReader.promise;
+
         const { value, done } = await reader.read();
 
         if (done) break;
 
         callback(value);
       } catch (error) {
+
         if (this.reconnecting === false && this.disconnected === false) {
-          console.error(`Cannot read. Reconnecting... Error: ${error}`);
-          await this.#reconnect();
+          this.#reconnect(`Cannot read. Reconnecting... Error: ${error}`);
         }
       }
     }
 
   }
 
-  async #reconnect() {
+  async #reconnect(reason) {
+    // TODO Fix reconnection. it does not work when stream server is stopped and broke front end (memory leak) ???
+    if (this.disconnected === true) return;
+
+    // TODO fix retry add interval between attempts 
+    if (this.recentReconnectionTimeAttempt !== null && Math.abs(Date.now() - this.recentReconnectionTimeAttempt) < 5000) {
+      return;
+    };
+
+    this.recentReconnectionTimeAttempt = Date.now();
+
+    console.error(`Reconnecting reason: ${reason}`);
+
+
     this.reconnecting = true;
     this.connected = false;
 
