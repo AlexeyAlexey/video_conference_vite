@@ -94,7 +94,7 @@ export class StreamServer {
         console.info(error);
       } else {
 
-        if (this.reconnecting === false && this.disconnected === false) { this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`); }
+        if (this.reconnecting === false && this.disconnected === false) { await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`); }
       }
     }
   }
@@ -115,7 +115,7 @@ export class StreamServer {
       } catch (error) {
 
         if (this.reconnecting === false && this.disconnected === false) {
-          this.#reconnect(`Cannot read. Reconnecting... Error: ${error}`);
+          await this.#reconnect(`Cannot read. Reconnecting... Error: ${error}`);
         }
       }
     }
@@ -123,18 +123,11 @@ export class StreamServer {
   }
 
   async #reconnect(reason) {
-    // TODO Fix reconnection. it does not work when stream server is stopped and broke front end (memory leak) ???
-    if (this.disconnected === true) return;
-
-    // TODO fix retry add interval between attempts 
     if (this.recentReconnectionTimeAttempt !== null && Math.abs(Date.now() - this.recentReconnectionTimeAttempt) < 5000) {
-      return;
+      console.error(`Reconnecting reason: ${reason}`);
     };
 
     this.recentReconnectionTimeAttempt = Date.now();
-
-    console.error(`Reconnecting reason: ${reason}`);
-
 
     this.reconnecting = true;
     this.connected = false;
