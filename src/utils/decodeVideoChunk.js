@@ -1,6 +1,7 @@
 export function decodeVideoChunk(payload) {
   const view = new DataView(payload.buffer);
-  const isVideo = view.getUint8(0, false);
+
+  // const chunkType = view.getUint8(0, false);
   const seq = view.getUint32(2, false);
   const type = view.getUint32(6, false);
   const key = view.getUint32(10, false);
@@ -11,8 +12,9 @@ export function decodeVideoChunk(payload) {
   const videoChunk = payload.slice(26)
 
   return {
-    isVideo: (isVideo == 1 ? true : false),
-    isAudio: (isVideo == 0 ? true : false),
+    dataType: "video",
+    isVideo: true,
+    isAudio: false,
     seq: seq,
     type: (type == 0 ? 'delta' : 'key'),
     ts: Number(ts),
@@ -21,4 +23,4 @@ export function decodeVideoChunk(payload) {
     byteLength: byteLength,
     body: videoChunk
   }
-}
+};
