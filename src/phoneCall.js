@@ -102,6 +102,8 @@ export class PhoneCall {
 
           const decoded = decodeChunk(value);
 
+          // console.log(decoded);
+
           if (decoded.dataType == "video") {
             this.remoteUserPlayer.playVideo(decoded)
           } else if (decoded.dataType == "close") {
@@ -125,11 +127,7 @@ export class PhoneCall {
     this.audioStream.reader((value) => {
       if (value) {
         try {
-
-
-
           const decoded = decodeChunk(value);
-
 
           if (decoded.dataType == "audio") {
             this.remoteUserPlayer.playAudio(decoded)

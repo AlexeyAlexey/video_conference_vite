@@ -72,3 +72,6 @@ TODO escape input template parameters [Cross-site scripting (XSS)](https://devel
 
 ./gen_release.sh "/absolute/path/to/local/folder"
 ./gen_release.sh "/home/alexey/Documents/elixir/videoconference_vite/video_conference_vite_rels"
+
+
+http://localhost:5173/register-phone?invitation_token=1234321

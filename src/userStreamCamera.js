@@ -196,7 +196,7 @@ class UserStreamCameraVideo {
 
   // Improve package
   #encodeChunk(chunk) {
-    return encodeVideoChunk(chunk, this.phone)
+    return encodeVideoChunk(chunk)
   }
 
 
@@ -358,7 +358,7 @@ class UserStreamCameraAudio {
   }
 
   #encodeChunk(chunk) {
-    return encodeAudioChunk(chunk, this.phone);
+    return encodeAudioChunk(chunk);
   }
 
   #onChunk(chunk, metadata) {

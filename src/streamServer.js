@@ -2,7 +2,7 @@ import { Socket } from "phoenix"
 import { StreamMessageParser } from "@/streamMessageParser.js"
 
 export class StreamServer {
-  constructor(uri, streamServerCertHash) {
+  constructor(uri, streamServerCertHash, streamParser = null) {
     this.streamServer = null;
     this.streamServerCertHash = streamServerCertHash;
 
@@ -14,6 +14,7 @@ export class StreamServer {
     this.reconnecting = false;
     this.disconnected = false;
     this.recentReconnectionTimeAttempt = null;
+    this.streamParser = streamParser || new StreamMessageParser(1024 * 1024)
 
   }
 
