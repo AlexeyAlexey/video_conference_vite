@@ -24,8 +24,13 @@ const baseFetch = (path, params, config = {}) => {
       window.fetch(url, {
         ..._config,
         headers: _headers
-      }).then(response => response.json())
-        .then(resolve, reject)
+      }).then(response => {
+        if (response.status === 204) {
+          null
+        } else {
+          return response.json()
+        }
+      }).then(resolve, reject)
     } catch (e) {
       reject(e)
     }

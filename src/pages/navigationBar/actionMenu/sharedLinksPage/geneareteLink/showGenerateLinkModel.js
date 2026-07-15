@@ -1,5 +1,7 @@
 import partialGenerateLinkModel from '@/pages/navigationBar/actionMenu/sharedLinksPage/geneareteLink/_generateLinkModel.template.html?tpl'
 import { render } from '@/router'
+import { generateSharedLinkApi } from '@/api/generateSharedLinkApi.js'
+
 
 
 export function showGenerateLinkModel(opts = {}) {
@@ -25,20 +27,17 @@ export function showGenerateLinkModel(opts = {}) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
-    console.log(data);
+    // TODO Process failed request
+    // TODO add password
+    generateSharedLinkApi(data).then((response) => {
+      console.info(response)
+      render('/shared-links')
+
+    }).catch(e => console.error(e))
+
 
     generateLinkModel.close();
     generateLinkModel.remove();
-
-    // generateSharedLink(data).then((response) => {
-
-
-    //   generateLinkModel.close();
-    //   generateLinkModel.remove();
-
-    //   render('/phones')
-    // })
-    //   .catch(e => console.error(e))
 
   });
 

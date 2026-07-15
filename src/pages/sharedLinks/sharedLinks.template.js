@@ -1,6 +1,12 @@
 import { addNavigationBar } from '@/pages/navigationBar/addNavigationBar.js'
 import { render } from '@/router'
 import partialSharedLink from '@/pages/sharedLinks/_sharedLink.template.html?tpl'
+import { sharedLinkListApi } from '@/api/sharedLinkListApi.js'
+import { removeSharedLinkApi } from '@/api/removeSharedLinkApi.js'
+
+const schema = import.meta.env.VITE_SCHEMA
+const host = import.meta.env.VITE_HOST
+const port = import.meta.env.VITE_PORT
 
 function rowInteractiveEffects(li) {
   if (!li.hasAttribute('tabindex')) li.setAttribute('tabindex', '0');
@@ -23,9 +29,10 @@ function removeItem(liEl) {
   liEl.style.transform = 'translateX(-100%)';
   liEl.style.opacity = '0';
   setTimeout(() => {
-    liEl.dataset
-    console.log(liEl.dataset)
-    notify('Removed', 'success');
+    removeSharedLinkApi({ id: liEl.dataset.id }).then((response) => {
+      notify('Removed', 'success');
+    }).catch(e => console.error(e));
+
   }, 280);
 };
 
@@ -90,7 +97,7 @@ function startInlineEdit(li, field, asPassword = false) {
 
     switch (field) {
       case 'name':
-        save({ id: id, name: val });
+        update({ id: id, name: val });
 
         li.insertAdjacentHTML('afterend', partialSharedLink({
           id: id,
@@ -105,7 +112,7 @@ function startInlineEdit(li, field, asPassword = false) {
         break;
 
       case 'password':
-        save({ id: id, password: val });
+        update({ id: id, password: val });
 
         li.insertAdjacentHTML('afterend', partialSharedLink({
           id: id,
@@ -221,7 +228,7 @@ function notify(msg, color = 'info') {
   setTimeout(() => n.remove(), 2000);
 };
 
-function save(data) {
+function update(data) {
 
 };
 
@@ -256,13 +263,17 @@ export default function template(props = {}) {
 
   addNavigationBar({ pageName: 'sharedLinks' });
 
-  [{ id: "xxxxxxx", name: "Link name", link: "https//xxxxx", password_required: false }].forEach((sharedLink) => {
-    sharesLinksList.insertAdjacentHTML('beforeend',
-      partialSharedLink({
-        id: sharedLink.id,
-        name: sharedLink.name,
-        link: sharedLink.link,
-        password_required: sharedLink.password_required
-      }));
-  });
+  sharedLinkListApi().then((response) => {
+    response.forEach((sharedLink) => {
+      sharesLinksList.insertAdjacentHTML('beforeend',
+        partialSharedLink({
+          id: sharedLink.id,
+          name: sharedLink.name,
+          link: `${schema}://${host}:${port}/shared_link_call/${sharedLink.link_id}`,
+          password_required: sharedLink.password_required
+        }));
+    });
+
+  }).catch(e => console.error(e))
+
 }
