@@ -11,7 +11,15 @@ import { eventDispatcher } from '@/eventDispatcher.js'
 // caller
 // receiver
 export class PhoneCall {
-  constructor(phone, toPhone, switchboardVideoUri, switchboardVideoServerCertHash = null, switchboardAudioUri, switchboardAudioServerCertHash = null, remoteUserVideoElement, callerUserVideoElement, opts = {}) {
+  constructor(phone,
+    toPhone,
+    switchboardVideoUri,
+    switchboardVideoServerCertHash = null,
+    switchboardAudioUri,
+    switchboardAudioServerCertHash = null,
+    remoteUserVideoElement,
+    callerUserVideoElement,
+    opts = {}) {
     this.phone = phone;
     this.toPhone = toPhone;
 
@@ -24,7 +32,6 @@ export class PhoneCall {
     this.remoteUserPlayer = new RemoteUserPlayer(remoteUserVideoElement);
 
     this.userStreamCamera = new UserStreamCamera(
-      this.phone,
       callerUserVideoElement,
       this.videoStream.write.bind(this.videoStream),
       this.audioStream.write.bind(this.audioStream),

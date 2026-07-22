@@ -66,9 +66,9 @@ export class RemoteUserPlayer {
   }
 
   destroy() {
-    if (this.video) {
-      this.video.remove();
-    }
+    // if (this.video) {
+    //   this.video.remove();
+    // }
   }
 
   playVideo(videoChunk) {

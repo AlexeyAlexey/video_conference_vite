@@ -52,7 +52,7 @@ export class StreamServer {
       this.streamWriter.resolve(writer);
 
       const streamReaderStream = streamServerStream.readable.pipeThrough(
-        new TransformStream(new StreamMessageParser(1024 * 1024)) // 1MB buffer
+        new TransformStream(this.streamParser) // 1MB buffer
       );
 
       const reader = streamReaderStream.getReader()

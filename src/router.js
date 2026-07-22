@@ -23,7 +23,7 @@ import { PhonesListController } from '@/pages/phonesList/phonesListController.js
 import { CallController } from '@/pages/call/callController.js'
 import { CallingPopUpController } from '@/pages/callingPopUp/callingPopUpController.js'
 import { SharedLinkController } from '@/pages/sharedLinks/sharedLinkController.js'
-
+import { SharedLinkCallController } from '@/pages/sharedLinkCall/sharedLinkCallController.js'
 
 const routes = {
   '/register-phone': RegisterPhoneController,
@@ -33,6 +33,7 @@ const routes = {
   '/call': CallController,
   '/shared-links': SharedLinkController,
   '/calling-pop-up': CallingPopUpController,
+  '/shared-link-call': SharedLinkCallController,
   currentController: null
 };
 

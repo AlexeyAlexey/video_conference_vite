@@ -5,8 +5,7 @@ import { encodeAudioChunk } from '@/utils/encodeAudioChunk.js';
 
 class UserStreamCameraVideo {
 
-  constructor(phone, mediaStream, audioStream, settings = { codec: 'vp8' }) {
-    this.phone = phone;
+  constructor(mediaStream, audioStream, settings = { codec: 'vp8' }) {
     this.encoder = null;
     this.processor = null;
     this.reader = null;
@@ -26,12 +25,14 @@ class UserStreamCameraVideo {
 
   destroy() {
 
-    if (element) {
-      element.remove();
-    }
+    // if (element) {
+    //   element.remove();
+    // }
   }
 
   enable() {
+    console.log("this.videoEnabled")
+    console.log(this.videoEnabled)
     this.videoEnabled = true;
   }
 
@@ -229,8 +230,7 @@ class UserStreamCameraVideo {
 
 class UserStreamCameraAudio {
 
-  constructor(phone, mediaStream, audioStream, settings = {}) {
-    this.phone = phone;
+  constructor(mediaStream, audioStream, settings = {}) {
     this.abortController = null;
     this.encoder = null;
     this.processor = null;
@@ -388,8 +388,7 @@ class UserStreamCameraAudio {
 }
 
 export class UserStreamCamera {
-  constructor(phone, videoElement, videoStream, audioStream, videoSettings = {}, audioSettings = {}) {
-    this.phone = phone;
+  constructor(videoElement, videoStream, audioStream, videoSettings = {}, audioSettings = {}) {
     this.mediaStream = null;
     this.abortController = null;
     this.encoder = null;
@@ -449,7 +448,6 @@ export class UserStreamCamera {
     this.runVideo = true;
     if (this.mediaStream) {
       this.videoProcessor = new UserStreamCameraVideo(
-        this.phone,
         this.mediaStream,
         this.videoStream,
         this.videoSettings)
@@ -467,7 +465,6 @@ export class UserStreamCamera {
 
     if (this.mediaStream) {
       this.audioProcessor = new UserStreamCameraAudio(
-        this.phone,
         this.mediaStream,
         this.audioStream,
         { audioEnabled: this.audioEnabled })

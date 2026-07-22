@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-base-200">
+  <div class="mx-auto p-4 max-w-screen-lg w-full pb-36 sm:pb-28">
+    <div class="flex items-center justify-between gap-4 mb-4">
+      <h1 class="text-xl font-semibold">Conference call</h1>
+      <div class="flex items-center gap-2">
+        <button id="btnAddParticipant" class="btn btn-sm btn-primary">Add participant</button>
+      </div>
+    </div>
+
+    <div class="relative mb-4">
+      <video id="localVideo"
+        class="fixed z-10 w-40 h-28 md:w-64 md:h-40 rounded-box border border-base-300 shadow-lg object-cover bg-black cursor-move touch-none select-none left-4"
+        autoplay playsinline muted></video>
+    </div>
+
+    <div id="remotesGrid" class="grid grid-cols-2 gap-4">
+    </div>
+  </div>
+</div>
+
+<div class="dock dock-md fixed bottom-0 inset-x-0 bg-base-100/80 backdrop-blur border-t justify-center gap-4 py-2 px-4"
+  style="padding-bottom: env(safe-area-inset-bottom)">
+  <button id="btnToggleCamera" class="btn btn-circle btn-lg sm:btn-md lg:btn-lg" aria-pressed="true"
+    aria-label="Toggle camera">
+    <svg id="iconCamOn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      class="w-6 h-6 hidden">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M15.75 10.5V6.75A2.25 2.25 0 0 0 13.5 4.5h-9A2.25 2.25 0 0 0 2.25 6.75v10.5A2.25 2.25 0 0 0 4.5 19.5h9a2.25 2.25 0 0 0 2.25-2.25V13.5l4.03 2.69a.75.75 0 0 0 1.17-.62V8.43a.75.75 0 0 0-1.17-.62L15.75 10.5Z" />
+    </svg>
+    <svg id="iconCamOff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M3 3l18 18M15.75 10.5V6.75A2.25 2.25 0 0 0 13.5 4.5h-6M5.25 6.75H4.5A2.25 2.25 0 0 0 2.25 9v6A2.25 2.25 0 0 0 4.5 17.25h8.25a2.25 2.25 0 0 0 2.25-2.25V13.5l3.53 2.36c.5.34 1.17-.02 1.17-.62V8.56c0-.6-.67-.96-1.17-.62L18 9.75M9 9l6 6" />
+    </svg>
+  </button>
+  <button id="btnToggleMic" class="btn btn-circle btn-lg sm:btn-md lg:btn-lg" aria-pressed="true"
+    aria-label="Toggle microphone">
+    <svg id="iconMicOn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M12 3.75A3.75 3.75 0 0 1 15.75 7.5v3A3.75 3.75 0 0 1 12 14.25 3.75 3.75 0 0 1 8.25 10.5v-3A3.75 3.75 0 0 1 12 3.75Z" />
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M5.25 10.5A6.75 6.75 0 0 0 12 17.25 6.75 6.75 0 0 0 18.75 10.5M12 17.25V21" />
+    </svg>
+    <svg id="iconMicOff" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      class="w-6 h-6 hidden">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M3 3l18 18M15.75 10.5v-3A3.75 3.75 0 0 0 12 3.75c-.87 0-1.67.3-2.3.81M8.25 10.5v0A3.75 3.75 0 0 0 12 14.25c.65 0 1.26-.16 1.8-.44M5.25 10.5A6.75 6.75 0 0 0 12 17.25 6.75 6.75 0 0 0 18.75 10.5M12 17.25V21" />
+    </svg>
+  </button>
+  <button id="btnHangup" class="btn btn-circle btn-error btn-lg sm:btn-md lg:btn-lg" aria-label="Hang up">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-6 h-6">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M4.5 12.75c4.5-3.75 10.5-3.75 15 0M6.75 15.75l-2.25-3m12.75 3 2.25-3" />
+    </svg>
+  </button>
+  <div class="sr-only" aria-live="polite" id="ariaStatus"></div>
+</div>

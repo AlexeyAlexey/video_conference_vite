@@ -255,7 +255,6 @@ function sharesLinksListObserver(sharesLinksList) {
 
 };
 
-
 export default function template(props = {}) {
   const sharesLinksList = document.getElementById('sharesLinksList');
 
@@ -269,7 +268,7 @@ export default function template(props = {}) {
         partialSharedLink({
           id: sharedLink.id,
           name: sharedLink.name,
-          link: `${schema}://${host}:${port}/shared_link_call/${sharedLink.link_id}`,
+          link: `${schema}://${host}:${port}/shared-link-call?link_id=${sharedLink.link_id}`,
           password_required: sharedLink.password_required
         }));
     });
