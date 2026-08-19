@@ -2,7 +2,7 @@ import { Socket } from "phoenix"
 import { StreamMessageParser } from "@/streamMessageParser.js"
 
 export class StreamServer {
-  constructor(uri, streamServerCertHash, streamParser = null) {
+  constructor(uri, streamServerCertHash, streamParser = null, opts = {}) {
     this.streamServer = null;
     this.streamServerCertHash = streamServerCertHash;
 
@@ -10,11 +10,14 @@ export class StreamServer {
 
     this.streamWriter = Promise.withResolvers();
     this.streamReader = Promise.withResolvers();
+    this.unidirectionalStreamWriter = Promise.withResolvers();
+    this.unidirectionalStreamReader = Promise.withResolvers();
     this.connected = false;
     this.reconnecting = false;
     this.disconnected = false;
     this.recentReconnectionTimeAttempt = null;
     this.streamParser = streamParser || new StreamMessageParser(1024 * 1024)
+    this.opts = opts
 
   }
 
@@ -26,6 +29,8 @@ export class StreamServer {
     try {
       this.streamWriter = Promise.withResolvers();
       this.streamReader = Promise.withResolvers();
+      this.unidirectionalStreamWriter = Promise.withResolvers();
+      this.unidirectionalStreamReader = Promise.withResolvers();
 
 
       if (this.streamServerCertHash) {
@@ -58,15 +63,33 @@ export class StreamServer {
       const reader = streamReaderStream.getReader()
       this.streamReader.resolve(reader)
 
-      console.info(`connected to ${this.uri}`)
+      if (this.opts.initUnidirectionalStreamWriter === true) {
+        await this.#initUnidirectionalStreamWriter();
 
-      this.connected = true
+      };
+
+      if (this.opts.initUnidirectionalStreamReader === true) {
+        await this.#initUnidirectionalStreamReader();
+
+      };
+
+      console.info(`connected to ${this.uri}`);
+
+      this.connected = true;
       this.reconnecting = false;
 
 
     } catch (error) {
       this.streamWriter.reject(error);
       this.streamReader.reject(error);
+
+      if (this.opts.initUnidirectionalStreamWriter === true) {
+        this.unidirectionalStreamWriter.reject(error);
+      };
+
+      if (this.opts.initUnidirectionalStreamReader === true) {
+        this.unidirectionalStreamReader.reject(error);
+      };
 
       this.#reconnect(`Connect failed. Error ${error}`);
     }
@@ -79,6 +102,36 @@ export class StreamServer {
       bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
     }
     return bytes;
+  }
+
+  async #initUnidirectionalStreamWriter() {
+    const stream = await this.streamServer.createUnidirectionalStream();
+
+    const writer = stream.getWriter();
+
+    this.unidirectionalStreamWriter.resolve(writer);
+
+    return true;
+
+  }
+
+  async #initUnidirectionalStreamReader() {
+    const stream = await this.streamServer.incomingUnidirectionalStreams;
+
+    // const streamReader = stream.pipeThrough(
+    //   new TransformStream(this.streamParser)
+    // );
+
+    const streamReader = stream;
+
+    const reader = streamReader.getReader();
+
+    console.log(reader)
+
+    this.unidirectionalStreamReader.resolve(reader);
+
+    return true;
+
   }
 
   async write(data) {
@@ -96,6 +149,25 @@ export class StreamServer {
       } else {
 
         if (this.reconnecting === false && this.disconnected === false) { await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`); }
+      }
+    }
+  }
+
+  async unidirectionalWrite(data) {
+    if (this.disconnected) return;
+
+    try {
+      const writer = await this.unidirectionalStreamWriter.promise;
+
+      await writer.write(data);
+    } catch (error) {
+
+      if (error instanceof WebTransportError && error.message === 'Received STOP_SENDING.') {
+        this.disconnected = true
+        console.info(error);
+      } else {
+
+        if (this.reconnecting === false && this.disconnected === false) { await this.#reconnect(`Cannot write to unidirectionalWrite. Reconnecting... Error: ${error}`); }
       }
     }
   }
@@ -121,6 +193,60 @@ export class StreamServer {
       }
     }
 
+  }
+
+  async unidirectionalReader(callback) {
+    while (true) {
+      try {
+        if (this.disconnected) break;
+
+
+        const reader = await this.unidirectionalStreamReader.promise;
+
+        const { value: stream, done } = await reader.read();
+
+        if (done) break;
+
+        this.#handleIncomingUnidirectionalStream(stream, callback)
+
+      } catch (error) {
+
+        if (this.reconnecting === false && this.disconnected === false) {
+          await this.#reconnect(`Cannot read from unidirectionalReader. Reconnecting... Error: ${error}`);
+        }
+      }
+    }
+
+  }
+
+  async #handleIncomingUnidirectionalStream(stream, callback) {
+    const streamReader = stream.pipeThrough(
+      new TransformStream(this.streamParser)
+    );
+
+    const reader = streamReader.getReader(); // This is your unidirectionalStreamReader
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+
+        if (done) {
+          console.info("Incoming Unidirectional Stream is finished by server.");
+          break;
+        }
+
+        callback(value)
+        // 'value' is a Uint8Array
+      }
+    } catch (err) {
+      if (this.reconnecting === false && this.disconnected === false) {
+        await this.#reconnect(`Cannot read from unidirectionalReader. Reconnecting... Error: ${error}`);
+      }
+
+      console.error("Stream read error:", err);
+    } finally {
+      reader.releaseLock();
+    }
   }
 
   async #reconnect(reason) {

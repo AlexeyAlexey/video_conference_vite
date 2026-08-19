@@ -24,16 +24,26 @@ export class ConferenceCall {
 
 		this.videoStream = new StreamServer(switchboardVideoUri,
 			switchboardVideoServerCertHash,
-			new ConferenceStreamParser(1024 * 1024));
+			new ConferenceStreamParser(1024 * 1024),
+			{
+				initUnidirectionalStreamWriter: false,
+				initUnidirectionalStreamReader: false
+			});
 
 		this.audioStream = new StreamServer(switchboardAudioUri,
 			switchboardAudioServerCertHash,
-			new ConferenceStreamParser(1024 * 1024));
+			new ConferenceStreamParser(1024 * 1024),
+			{
+				initUnidirectionalStreamWriter: false,
+				initUnidirectionalStreamReader: false
+			});
 
 		this.userStreamCamera = new UserStreamCamera(
 			currentParticipantVideoElement,
+			// this.videoStream.unidirectionalWrite.bind(this.videoStream),
 			this.videoStream.write.bind(this.videoStream),
 			this.audioStream.write.bind(this.audioStream),
+			// this.audioStream.unidirectionalWrite.bind(this.audioStream),
 			{
 				codec: 'vp8',
 				width: 640,
@@ -61,6 +71,7 @@ export class ConferenceCall {
 
 				this.userStreamCamera.startVideo();
 				this.startVideoReading();
+				// this.startUnidirectionalVideoReading();
 
 
 			});
@@ -71,6 +82,7 @@ export class ConferenceCall {
 
 				this.userStreamCamera.startAudio();
 				this.startAudioReading();
+				// this.startUnidirectionalAudioReading();
 
 
 			});
@@ -103,9 +115,62 @@ export class ConferenceCall {
 		this.userStreamCamera.disableAudio();
 	}
 
+	#sendEvent(info) {
+
+		encodeEvent({ eventName: "NameIsSet", name: "Alex" }).then(finalBuffer => {
+
+			this.audioStream.write(finalBuffer);
+
+
+		}).catch((e) => {
+			console.error('Error ConferenceCall encodeEvent: ', e);
+		});
+	}
+
 	setParticipantName(name) {
 		this.#sendEvent(name);
 	}
+
+
+	async #processEvent(participantId, event) {
+		switch (event.eventName) {
+			case "NameIsSet":
+				this.participantManager.renameParticipant(participantId, event.name);
+				break;
+
+			default:
+				console.info(`An event processing is not implemented ${event.eventName}`);
+		}
+	}
+
+
+	#process_stream_package(value) {
+		if (value) {
+			try {
+				const decoded = decodeChunk(value);
+
+				if (decoded.dataType == "audio") {
+					this.participantManager.playAudio(decoded.participantId, decoded);
+				} else if (decoded.dataType == "ringtone") {
+					// this.soundPlayer.play(decoded.body)
+				} else if (decoded.dataType == "close") {
+					// this.soundPlayer.play(decoded.body)
+					console.log(`audio closed ${decoded.body}`)
+
+					eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
+				} else if (decoded.dataType == "event") {
+					this.#processEvent(decoded.participantId, decoded.body);
+				}
+
+			} catch (error) {
+				console.info("Stream Audio reader error:", error);
+
+				console.log(value)
+			}
+
+		}
+	}
+
 
 	async startVideoReading() {
 		this.videoStream.reader((value) => {
@@ -128,59 +193,92 @@ export class ConferenceCall {
 		});
 	}
 
-	async startAudioReading() {
-		this.audioStream.reader((value) => {
+	async startUnidirectionalVideoReading() {
+		this.videoStream.unidirectionalReader((value) => {
 			if (value) {
 				try {
 					const decoded = decodeChunk(value);
 
-					if (decoded.dataType == "audio") {
-						this.participantManager.playAudio(decoded.participantId, decoded);
-					} else if (decoded.dataType == "ringtone") {
-						// this.soundPlayer.play(decoded.body)
+					console.log(value)
+
+					if (decoded.dataType == "video") {
+						this.participantManager.playVideo(decoded.participantId, decoded);
 					} else if (decoded.dataType == "close") {
 						// this.soundPlayer.play(decoded.body)
-						console.log(`audio closed ${decoded.body}`)
-
-						eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
-					} else if (decoded.dataType == "event") {
-						this.#processEvent(decoded.participantId, decoded.body);
+						console.log(`video closed ${decoded.body}`)
 					}
 
 				} catch (error) {
-					console.info("Stream Audio reader error:", error);
-
-					console.log(value)
+					console.info("Stream Video reader error:", error);
 				}
 
 			}
+		});
+	}
+
+	async startUnidirectionalAudioReading() {
+		this.audioStream.unidirectionalReader((value) => {
+			this.#process_stream_package(value);
+
+			// if (value) {
+			// 	try {
+			// 		const decoded = decodeChunk(value);
+
+			// 		console.log('startUnidirectionalAudioReading')
+			// 		console.log(decoded)
+
+			// 		// if (decoded.dataType == "video") {
+			// 		// 	this.participantManager.playVideo(decoded.participantId, decoded);
+			// 		// } else if (decoded.dataType == "close") {
+			// 		// 	// this.soundPlayer.play(decoded.body)
+			// 		// 	console.log(`video closed ${decoded.body}`)
+			// 		// }
+
+			// 	} catch (error) {
+			// 		console.info("Stream Video reader error:", error);
+			// 	}
+
+			// }
+		});
+	}
+
+
+
+	async startAudioReading() {
+		this.audioStream.reader((value) => {
+			this.#process_stream_package(value);
+			// if (value) {
+			// 	try {
+			// 		const decoded = decodeChunk(value);
+
+			// 		if (decoded.dataType == "audio") {
+			// 			this.participantManager.playAudio(decoded.participantId, decoded);
+			// 		} else if (decoded.dataType == "ringtone") {
+			// 			// this.soundPlayer.play(decoded.body)
+			// 		} else if (decoded.dataType == "close") {
+			// 			// this.soundPlayer.play(decoded.body)
+			// 			console.log(`audio closed ${decoded.body}`)
+
+			// 			eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
+			// 		} else if (decoded.dataType == "event") {
+			// 			this.#processEvent(decoded.participantId, decoded.body);
+			// 		}
+
+			// 	} catch (error) {
+			// 		console.info("Stream Audio reader error:", error);
+
+			// 		console.log(value)
+			// 	}
+
+			// }
 
 
 		})
 	}
 
-	async #processEvent(participantId, event) {
-		switch (event.eventName) {
-			case "NameIsSet":
-				this.participantManager.renameParticipant(participantId, event.name);
-				break;
-
-			default:
-				console.info(`An event processing is not implemented ${event.eventName}`);
-		}
-	}
-
-	#sendEvent(info) {
-
-		encodeEvent({ eventName: "NameIsSet", name: "Alex" }).then(finalBuffer => {
-
-			this.audioStream.write(finalBuffer);
 
 
-		}).catch((e) => {
-			console.error('Error ConferenceCall encodeEvent: ', e);
-		});
-	}
+
 
 
 }
