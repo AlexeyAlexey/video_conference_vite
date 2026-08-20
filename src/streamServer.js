@@ -5,36 +5,42 @@ export class StreamServer {
   constructor(uri, streamServerCertHash, streamParser = null, opts = {}) {
     this.streamServer = null;
     this.streamServerCertHash = streamServerCertHash;
-
     this.uri = uri;
+    this.streamParser = streamParser || new StreamMessageParser(1024 * 1024);
+    this.opts = opts;
+
+    this.connected = false;
+    this.reconnecting = false;
+    this.disconnected = false;
+    this.recentReconnectionTimeAttempt = null;
 
     this.streamWriter = Promise.withResolvers();
     this.streamReader = Promise.withResolvers();
     this.unidirectionalStreamWriter = Promise.withResolvers();
     this.unidirectionalStreamReader = Promise.withResolvers();
-    this.connected = false;
-    this.reconnecting = false;
-    this.disconnected = false;
-    this.recentReconnectionTimeAttempt = null;
-    this.streamParser = streamParser || new StreamMessageParser(1024 * 1024)
-    this.opts = opts
+  }
 
+  _cleanup() {
+    if (this.streamServer) {
+      this.streamServer.close();
+      this.streamServer = null;
+    }
+    if (this.streamParser) {
+      this.streamParser.reset();
+    }
   }
 
   async connect() {
     if (this.connected) return;
 
-    // this.disconnected = false;
+    this.streamWriter = Promise.withResolvers();
+    this.streamReader = Promise.withResolvers();
+    this.unidirectionalStreamWriter = Promise.withResolvers();
+    this.unidirectionalStreamReader = Promise.withResolvers();
 
     try {
-      this.streamWriter = Promise.withResolvers();
-      this.streamReader = Promise.withResolvers();
-      this.unidirectionalStreamWriter = Promise.withResolvers();
-      this.unidirectionalStreamReader = Promise.withResolvers();
-
-
       if (this.streamServerCertHash) {
-        console.info("serverCertificateHashes is set for WebTransportStreamConnection")
+        // console.info("serverCertificateHashes is set for WebTransportStreamConnection")
         // When self signed certificate is used
         this.streamServer = new WebTransport(this.uri, {
           serverCertificateHashes: [
@@ -57,7 +63,11 @@ export class StreamServer {
       this.streamWriter.resolve(writer);
 
       const streamReaderStream = streamServerStream.readable.pipeThrough(
-        new TransformStream(this.streamParser) // 1MB buffer
+        new TransformStream({
+          transform: (chunk, controller) => {
+            this.streamParser.transform(chunk, controller);
+          }
+        })
       );
 
       const reader = streamReaderStream.getReader()
@@ -80,18 +90,13 @@ export class StreamServer {
 
 
     } catch (error) {
+      this.connected = false;
+      this.reconnecting = false;
+
       this.streamWriter.reject(error);
       this.streamReader.reject(error);
-
-      if (this.opts.initUnidirectionalStreamWriter === true) {
-        this.unidirectionalStreamWriter.reject(error);
-      };
-
-      if (this.opts.initUnidirectionalStreamReader === true) {
-        this.unidirectionalStreamReader.reject(error);
-      };
-
-      this.#reconnect(`Connect failed. Error ${error}`);
+      this.unidirectionalStreamWriter.reject(error);
+      this.unidirectionalStreamReader.reject(error);
     }
   }
 
@@ -148,7 +153,9 @@ export class StreamServer {
         console.info(error);
       } else {
 
-        if (this.reconnecting === false && this.disconnected === false) { await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`); }
+        if (this.reconnecting === false && this.disconnected === false) {
+          await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`);
+        }
       }
     }
   }
@@ -167,7 +174,9 @@ export class StreamServer {
         console.info(error);
       } else {
 
-        if (this.reconnecting === false && this.disconnected === false) { await this.#reconnect(`Cannot write to unidirectionalWrite. Reconnecting... Error: ${error}`); }
+        if (this.reconnecting === false && this.disconnected === false) {
+          await this.#reconnect(`Cannot write to unidirectionalWrite. Reconnecting... Error: ${error}`);
+        }
       }
     }
   }
@@ -186,10 +195,11 @@ export class StreamServer {
 
         callback(value);
       } catch (error) {
-
         if (this.reconnecting === false && this.disconnected === false) {
           await this.#reconnect(`Cannot read. Reconnecting... Error: ${error}`);
         }
+        // After a reconnect attempt, the loop should break. The application logic is responsible for restarting it.
+        // break;
       }
     }
 
@@ -208,12 +218,12 @@ export class StreamServer {
         if (done) break;
 
         this.#handleIncomingUnidirectionalStream(stream, callback)
-
       } catch (error) {
-
         if (this.reconnecting === false && this.disconnected === false) {
           await this.#reconnect(`Cannot read from unidirectionalReader. Reconnecting... Error: ${error}`);
         }
+        // After a reconnect attempt, the loop should break. The application logic is responsible for restarting it.
+        // break;
       }
     }
 
@@ -221,7 +231,11 @@ export class StreamServer {
 
   async #handleIncomingUnidirectionalStream(stream, callback) {
     const streamReader = stream.pipeThrough(
-      new TransformStream(this.streamParser)
+      new TransformStream({
+        transform: (chunk, controller) => {
+          this.streamParser.transform(chunk, controller);
+        }
+      })
     );
 
     const reader = streamReader.getReader(); // This is your unidirectionalStreamReader
@@ -240,7 +254,7 @@ export class StreamServer {
       }
     } catch (err) {
       if (this.reconnecting === false && this.disconnected === false) {
-        await this.#reconnect(`Cannot read from unidirectionalReader. Reconnecting... Error: ${error}`);
+        await this.#reconnect(`Cannot read from unidirectionalReader. Reconnecting... Error: ${err}`);
       }
 
       console.error("Stream read error:", err);
@@ -250,16 +264,25 @@ export class StreamServer {
   }
 
   async #reconnect(reason) {
-    if (this.recentReconnectionTimeAttempt !== null && Math.abs(Date.now() - this.recentReconnectionTimeAttempt) < 5000) {
-      console.error(`Reconnecting reason: ${reason}`);
-    };
-
-    this.recentReconnectionTimeAttempt = Date.now();
-
+    if (this.reconnecting) { return; }
     this.reconnecting = true;
     this.connected = false;
 
-    await this.connect()
+    console.error(`Reconnecting reason: ${reason}`);
+    this.recentReconnectionTimeAttempt = Date.now();
+
+    this._cleanup();
+
+    // Optional: Add a delay before reconnecting
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    try {
+      await this.connect();
+    } catch (error) {
+      // The error is already handled by the promise rejection in connect()
+    } finally {
+      this.reconnecting = false;
+    }
   }
 
   async disconnect(reason = "disconnected", code = 0) {

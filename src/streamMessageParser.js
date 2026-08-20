@@ -7,6 +7,10 @@ export class StreamMessageParser {
     this.HEADER_SIZE = 6; // 2 byte marker + 4 byte payload length
   }
 
+  reset() {
+    this.offset = 0;
+  }
+
   transform(chunk, controller) {
     // Increasing buffer size if it is required
     if (this.offset + chunk.length > this.buffer.length) {

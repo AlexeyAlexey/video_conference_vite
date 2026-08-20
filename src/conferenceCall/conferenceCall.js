@@ -69,8 +69,12 @@ export class ConferenceCall {
 
 				console.info('connected to a server to stream video');
 
+
 				this.userStreamCamera.startVideo();
+
 				this.startVideoReading();
+
+
 				// this.startUnidirectionalVideoReading();
 
 
@@ -81,13 +85,16 @@ export class ConferenceCall {
 			.then(() => {
 
 				this.userStreamCamera.startAudio();
+
 				this.startAudioReading();
+
+
 				// this.startUnidirectionalAudioReading();
 
 
 			});
 
-		this.#sendEvent(`name:${this.currentParticipantName}`);
+		// this.#sendEvent(`name:${this.currentParticipantName}`);
 	}
 
 	end() {

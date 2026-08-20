@@ -138,8 +138,10 @@ export default function template(props = {}) {
     );
 
     conferenceCall.start();
+
     // conferenceCall.enableVideo();
     conferenceCall.enableAudio();
+
   }).catch(e => console.error(e))
 
 
