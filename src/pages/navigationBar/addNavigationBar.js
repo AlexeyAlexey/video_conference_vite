@@ -3,6 +3,9 @@ import html from '@/pages/navigationBar/navigationBar.template.html?tpl'
 import addPhonesListActionMenu from '@/pages/navigationBar/actionMenu/phonesListPage/add.js'
 import addSharedLinksMenu from '@/pages/navigationBar/actionMenu/sharedLinksPage/add.js'
 import { render } from '@/router'
+import { authenticated } from '@/authenticated'
+import { storage } from '@/storage'
+import { logOutApi } from '@/api/logOutApi'
 
 
 function setUpNavBarPageMenuCallback() {
@@ -13,6 +16,33 @@ function setUpNavBarPageMenuCallback() {
   document.getElementById('navSharedLinks').addEventListener('click', () => {
     render('/shared-links');
   });
+}
+
+function setUpNavBarLogoutCallback() {
+  const logoutBtn = document.getElementById('navBarLogout');
+  if (!logoutBtn) return;
+
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await logOutApi({});
+    } catch (error) {
+      console.error('Logout API call failed:', error);
+    } finally {
+      storage.removeAuthToken();
+      render('/');
+    }
+  });
+}
+
+function setNavBarLogoutVisibility() {
+  const logoutBtn = document.getElementById('navBarLogout');
+  if (!logoutBtn) return;
+
+  if (authenticated()) {
+    logoutBtn.style.display = 'block';
+  } else {
+    logoutBtn.style.display = 'none';
+  }
 }
 
 function setActiveNavBarPageMenu(itemId) {
@@ -45,6 +75,9 @@ export function addNavigationBar(opts = {}) {
 
 
   container.appendChild(el);
+
+  setNavBarLogoutVisibility();
+  setUpNavBarLogoutCallback();
 
   // sync dropdown overlay with details open state
   const details = document.getElementById('navBarActionMenu');
