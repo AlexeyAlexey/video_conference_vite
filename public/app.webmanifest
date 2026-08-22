@@ -1,5 +1,17 @@
 {
-  "name": "Video conference",
+  "name": "Video Conference",
+  "short_name": "Conference",
+  "description": "Real-time video and audio calls in your browser",
   "start_url": "/",
-  "display": "standalone"
+  "display": "standalone",
+  "background_color": "#f2f2f2",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

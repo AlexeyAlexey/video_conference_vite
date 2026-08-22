@@ -257,12 +257,34 @@ function sharesLinksListObserver(sharesLinksList) {
 
 export default function template(props = {}) {
   const sharesLinksList = document.getElementById('sharesLinksList');
+  if (!sharesLinksList) return;
+
+  const loadingEl = document.getElementById('sharedLinksLoading');
+  const emptyEl = document.getElementById('sharedLinksEmpty');
+  const countEl = document.getElementById('sharedLinksCount');
+
+  const setCount = (n) => {
+    if (countEl) countEl.textContent = n === 1 ? '1 link' : `${n} links`;
+  };
+
+  const refreshEmptyState = () => {
+    if (!emptyEl) return;
+    if (sharesLinksList.children.length === 0) {
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else {
+      emptyEl.classList.add('hidden');
+      emptyEl.classList.remove('flex');
+    }
+  };
 
   sharesLinksListObserver(sharesLinksList);
 
   addNavigationBar({ pageName: 'sharedLinks' });
 
   sharedLinkListApi().then((response) => {
+    loadingEl?.classList.add('hidden');
+
     response.forEach((sharedLink) => {
       sharesLinksList.insertAdjacentHTML('beforeend',
         partialSharedLink({
@@ -273,6 +295,20 @@ export default function template(props = {}) {
         }));
     });
 
-  }).catch(e => console.error(e))
+    setCount(response.length);
+    refreshEmptyState();
+
+  }).catch(e => {
+    console.error(e)
+    loadingEl?.classList.add('hidden');
+    if (emptyEl) {
+      const title = emptyEl.querySelector('p');
+      if (title) title.textContent = 'Could not load shared links';
+      const text = emptyEl.querySelectorAll('p')[1];
+      if (text) text.textContent = 'Sorry, your request failed. Please try again.';
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    }
+  })
 
 }

@@ -1,2 +1,175 @@
 @import "tailwindcss";
 @plugin "../node_modules/daisyui/index.js";
+
+/* ---------- Global polish ---------- */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible focus ring for keyboard users */
+:focus-visible {
+  outline: 2px solid oklch(0.55 0.2 265);
+  outline-offset: 2px;
+}
+
+/* Respect users who prefer less motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Animations ---------- */
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-top {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.35s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.25s ease-out both;
+}
+
+.animate-slide-in-top {
+  animation: slide-in-top 0.3s ease-out both;
+}
+
+/* Staggered list entrance */
+.stagger-in>* {
+  animation: fade-in-up 0.35s ease-out both;
+}
+
+.stagger-in>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-in>*:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.stagger-in>*:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.stagger-in>*:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.stagger-in>*:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.stagger-in>*:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+.stagger-in>*:nth-child(7) {
+  animation-delay: 240ms;
+}
+
+.stagger-in>*:nth-child(8) {
+  animation-delay: 280ms;
+}
+
+/* Pulsing ring for the incoming-call indicator */
+.pulse-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pulse-ring 1.6s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+  z-index: -1;
+}
+
+/* Nicer scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.8 0.02 265);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.65 0.05 265);
+}

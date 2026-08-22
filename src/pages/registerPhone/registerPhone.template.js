@@ -27,25 +27,53 @@ export default function template(props = {}) {
 
 
   const form = document.getElementById('registerPhone');
+  if (!form) return;
+
+  const errorBox = document.getElementById('registerError');
+  const spinner = document.getElementById('registerSpinner');
+  const btnLabel = document.getElementById('registerBtnLabel');
+  const submitBtn = document.getElementById('registerSubmitBtn');
+
+  const showError = (msg) => {
+    if (!errorBox) return;
+    errorBox.textContent = msg;
+    errorBox.classList.remove('hidden');
+  };
+
+  const setLoading = (loading) => {
+    if (submitBtn) submitBtn.disabled = loading;
+    if (spinner) spinner.classList.toggle('hidden', !loading);
+    if (btnLabel) btnLabel.textContent = loading ? 'Creating account…' : 'Create account';
+  };
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (errorBox) errorBox.classList.add('hidden');
+
+    if (!form.reportValidity()) return;
 
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    // console.log(data)
 
-    registerPhoneApi(data).then((response) => {
+    if (data.password !== data.password_confirmation) {
+      showError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await registerPhoneApi(data);
 
       localStorage.setItem('autToken', response.auth_token);
 
       managerWS.connect(response.auth_token);
 
       render('/phones');
-
-
-    })
-      .catch(e => console.error(e))
+    } catch (e) {
+      console.error(e)
+      setLoading(false);
+      showError('Sorry, your request failed. Please try again.');
+    }
 
     // try {
     //   await fetch(apiServer, {

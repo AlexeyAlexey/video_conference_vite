@@ -104,9 +104,39 @@ export default function template(props = {}) {
 
   phoneCall.call()
 
+  // Call timer
+  const callTimerEl = document.getElementById('callTimer');
+  const callStatusEl = document.getElementById('callStatus');
+  let callSeconds = 0;
+  let callTimerInterval = null;
 
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  };
+
+  const startCallTimer = () => {
+    if (callTimerInterval) return;
+    if (callStatusEl) callStatusEl.textContent = 'In call';
+    callTimerInterval = setInterval(() => {
+      callSeconds++;
+      if (callTimerEl) callTimerEl.textContent = formatTime(callSeconds);
+    }, 1000);
+  };
+
+  const stopCallTimer = () => {
+    if (callTimerInterval) {
+      clearInterval(callTimerInterval);
+      callTimerInterval = null;
+    }
+  };
+
+  // Start the timer shortly after the call begins
+  setTimeout(startCallTimer, 1500);
 
   endCallBtn.addEventListener('click', () => {
+    stopCallTimer();
     phoneCall.endCall()
     // render('/phones')
   });

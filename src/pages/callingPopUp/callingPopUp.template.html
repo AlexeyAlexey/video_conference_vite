@@ -1,30 +1,42 @@
 <div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
+  <div class="w-full max-w-md animate-fade-in-up">
     <div class="card bg-base-100 shadow-xl">
-      <div class="card-body items-center text-center gap-3">
-        <div class="avatar placeholder">
-          <div class="bg-neutral text-neutral-content rounded-full w-16">
-            <span class="text-xl">📞</span>
+      <div class="card-body items-center text-center gap-4">
+        <div class="relative pulse-ring text-success">
+          <div class="w-20 h-20 rounded-full bg-success/15 text-success flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="w-9 h-9">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.16a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z" />
+            </svg>
           </div>
         </div>
-        <h2 class="card-title">Calling</h2>
-        <p id="callTarget" class="text-sm opacity-70">${props.from}</p>
-        <div class="flex w-full items-center justify-between mt-2">
-          <button id="dropCall" class="btn btn-error btn-circle" aria-label="End call">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-              <path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.16a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z" />
-              <line x1="1" y1="1" x2="23" y2="23" />
-            </svg>
-          </button>
-          <button id="startCall" class="btn btn-success btn-circle" aria-label="Start call">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
-              <path
-                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.16a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z" />
-            </svg>
-          </button>
+        <div>
+          <h2 class="text-xl font-semibold">Incoming call</h2>
+          <p id="callTarget" class="text-base opacity-60 mt-1">${props.from}</p>
+        </div>
+        <div class="flex w-full items-center justify-center gap-8 mt-3">
+          <div class="flex flex-col items-center gap-1">
+            <button id="dropCall" class="btn btn-error btn-circle btn-xl" aria-label="End call">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.16a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+            <span class="text-xs opacity-60">Decline</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <button id="startCall" class="btn btn-success btn-circle btn-xl" aria-label="Start call">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                <path
+                  d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.32 1.77.59 2.61a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.47-1.16a2 2 0 0 1 2.11-.45c.84.27 1.71.47 2.61.59A2 2 0 0 1 22 16.92z" />
+              </svg>
+            </button>
+            <span class="text-xs opacity-60">Accept</span>
+          </div>
         </div>
       </div>
     </div>

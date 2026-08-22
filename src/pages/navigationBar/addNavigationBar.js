@@ -59,8 +59,8 @@ function setActiveNavBarPageMenu(itemId) {
   a.setAttribute('aria-current', 'page');
   activeText = a.textContent.trim();
 
-  const summary = nav.querySelector('summary');
-  if (summary) summary.textContent = activeText;
+  const label = document.getElementById('navBarPageMenuLabel');
+  if (label) label.textContent = activeText;
 };
 
 export function addNavigationBar(opts = {}) {

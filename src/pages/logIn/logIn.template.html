@@ -1,42 +1,65 @@
-<div class="min-h-screen bg-base-200">
-  <div class="max-w-4xl mx-auto p-4 space-y-4">
-    <div class="navbar bg-base-100 rounded-box">
-      <div class="ml-auto dropdown dropdown-end">
-        <button id="accountBtn" aria-label="Account menu" style="anchor-name:--account-anchor"
-          class="btn btn-ghost">Account</button>
-        <ul id="account-dd" popover="auto"
-          style="position-anchor: --account-anchor; top: anchor(bottom); left: anchor(right); transform: translateX(-100%); margin-top: 0.25rem;"
-          class="dropdown-content menu bg-base-100 rounded-box z-10 w-40 p-2 shadow">
-          <li><a href="/register-phone">Register</a></li>
-          <li><a href="/log-in">Log in</a></li>
-        </ul>
-      </div>
+<div class="min-h-screen bg-base-200 flex flex-col">
+  <header class="w-full">
+    <div class="max-w-4xl mx-auto px-4 pt-4">
+      <nav class="navbar bg-base-100 rounded-box shadow-sm">
+        <div class="navbar-start gap-2">
+          <img src="/logo.svg" alt="" class="w-8 h-8" />
+          <span class="font-semibold text-base">Video Conference</span>
+        </div>
+        <div class="ml-auto dropdown dropdown-end">
+          <button id="accountBtn" aria-label="Account menu" style="anchor-name:--account-anchor"
+            class="btn btn-ghost btn-sm">Account</button>
+          <ul id="account-dd" popover="auto"
+            style="position-anchor: --account-anchor; top: anchor(bottom); left: anchor(right); transform: translateX(-100%); margin-top: 0.25rem;"
+            class="dropdown-content menu bg-base-100 rounded-box z-10 w-40 p-2 shadow-lg">
+            <li><a href="/register-phone">Register</a></li>
+            <li><a href="/log-in" class="active">Log in</a></li>
+          </ul>
+        </div>
+      </nav>
     </div>
-    <div class="max-w-md mx-auto">
-      <div class="card bg-base-100 shadow">
-        <div class="card-body">
-          <h2 class="card-title">Log In</h2>
-          <form class="space-y-3" action="#" method="post" id="logInByPhone">
+  </header>
+
+  <main class="flex-1 flex items-center justify-center w-full">
+    <div class="max-w-md w-full mx-auto px-4 py-8">
+      <div class="card bg-base-100 shadow-lg animate-fade-in-up">
+        <div class="card-body items-center text-center">
+          <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
+            <img src="/logo.svg" alt="" class="w-9 h-9" />
+          </div>
+          <h2 class="card-title justify-center text-xl">Welcome back</h2>
+          <p class="text-sm opacity-60 -mt-1">Log in to start a call</p>
+
+          <form class="w-full space-y-4 mt-2" action="#" method="post" id="logInByPhone" novalidate>
             <div class="form-control">
-              <label class="label">
-                <span class="label-text">Phone</span>
+              <label class="label pb-1">
+                <span class="label-text font-medium">Phone</span>
               </label>
-              <input name="phone" type="number" inputmode="numeric" min="1" max="10000000" placeholder="Enter a number"
-                class="input input-bordered w-full" required />
+              <input name="phone" type="tel" inputmode="numeric" min="1" max="10000000" placeholder="Enter your number"
+                autocomplete="tel" class="input input-bordered w-full" required />
             </div>
             <div class="form-control">
-              <label class="label">
-                <span class="label-text">Password</span>
+              <label class="label pb-1">
+                <span class="label-text font-medium">Password</span>
               </label>
               <input name="password" type="password" minlength="3" required placeholder="••••••••"
-                class="input input-bordered w-full" required />
+                autocomplete="current-password" class="input input-bordered w-full" required />
             </div>
-            <div class="form-control pt-2">
-              <button type="submit" class="btn btn-primary w-full">Log in</button>
-            </div>
+
+            <div id="logInError" class="hidden alert alert-error text-sm py-2" role="alert"></div>
+
+            <button type="submit" id="logInSubmitBtn" class="btn btn-primary w-full">
+              <span class="loading loading-spinner loading-sm hidden" id="logInSpinner"></span>
+              <span id="logInBtnLabel">Log in</span>
+            </button>
           </form>
+
+          <p class="text-sm opacity-60 mt-2">
+            No account?
+            <a href="/register-phone" class="link link-primary font-medium">Register</a>
+          </p>
         </div>
       </div>
     </div>
-  </div>
+  </main>
 </div>

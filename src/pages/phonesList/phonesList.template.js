@@ -28,9 +28,54 @@ function call(hostId, phone) {
 
 export default function template(props = {}) {
   const phonesList = document.getElementById('phones-list');
+  if (!phonesList) return;
 
+  const loadingEl = document.getElementById('phonesLoading');
+  const emptyEl = document.getElementById('phonesEmpty');
+  const emptyTitle = document.getElementById('phonesEmptyTitle');
+  const emptyText = document.getElementById('phonesEmptyText');
+  const countEl = document.getElementById('phonesCount');
+  const searchInput = document.getElementById('phonesSearch');
+
+  const setCount = (n) => {
+    if (countEl) countEl.textContent = n === 1 ? '1 contact' : `${n} contacts`;
+  };
+
+  const refreshEmptyState = (total, filtered) => {
+    if (!emptyEl) return;
+    if (total === 0) {
+      emptyTitle.textContent = 'No contacts yet';
+      emptyText.textContent = 'Add a contact from the menu to start calling.';
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else if (filtered === 0) {
+      emptyTitle.textContent = 'No matches';
+      emptyText.textContent = 'No contacts match your search.';
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else {
+      emptyEl.classList.add('hidden');
+      emptyEl.classList.remove('flex');
+    }
+  };
+
+  const applyFilter = () => {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    let visible = 0;
+    phonesList.querySelectorAll('li').forEach((li) => {
+      const text = li.textContent.toLowerCase();
+      const match = !q || text.includes(q);
+      li.classList.toggle('hidden', !match);
+      if (match) visible++;
+    });
+    refreshEmptyState(phonesList.children.length, visible);
+  };
+
+  searchInput?.addEventListener('input', applyFilter);
 
   listPhonesFromPhoneBookApi().then((response) => {
+    loadingEl?.classList.add('hidden');
+
     response.forEach((phone) => {
       phonesList.insertAdjacentHTML('beforeend',
         partialPhone({
@@ -40,19 +85,26 @@ export default function template(props = {}) {
         }));
     });
 
+    setCount(response.length);
+    applyFilter();
+
     const callButtons = document.querySelectorAll('.call-button');
 
     callButtons.forEach(btn => {
       btn.addEventListener('click', () => {
 
-        call(event.currentTarget.dataset.hostId, event.currentTarget.dataset.phone)
-        // console.log(event.currentTarget.dataset)
-        // console.log(event.currentTarget.dataset.phone)
+        call(btn.dataset.hostId, btn.dataset.phone)
       });
     });
 
-    // render('/phones')
-  }).catch(e => console.error(e))
+  }).catch(e => {
+    console.error(e)
+    loadingEl?.classList.add('hidden');
+    if (emptyTitle) emptyTitle.textContent = 'Could not load contacts';
+    if (emptyText) emptyText.textContent = 'Sorry, your request failed. Please try again.';
+    emptyEl?.classList.remove('hidden');
+    emptyEl?.classList.add('flex');
+  })
 
 
   addNavigationBar({ pageName: 'phonesList' });

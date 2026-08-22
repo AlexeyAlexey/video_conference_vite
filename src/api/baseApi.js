@@ -24,12 +24,25 @@ const baseFetch = (path, params, config = {}) => {
       window.fetch(url, {
         ..._config,
         headers: _headers
-      }).then(response => {
-        if (response.status === 204) {
-          null
-        } else {
-          return response.json()
+      }).then(async (response) => {
+        // Reject on HTTP error statuses so callers can surface a friendly message
+        if (!response.ok) {
+          let message = `Request failed with status ${response.status}`;
+          try {
+            const errBody = await response.json();
+            if (errBody && (errBody.error || errBody.message)) {
+              message = errBody.error || errBody.message;
+            }
+          } catch (_) { /* body was not JSON */ }
+          const err = new Error(message);
+          err.status = response.status;
+          throw err;
         }
+
+        if (response.status === 204) {
+          return null
+        }
+        return response.json()
       }).then(resolve, reject)
     } catch (e) {
       reject(e)

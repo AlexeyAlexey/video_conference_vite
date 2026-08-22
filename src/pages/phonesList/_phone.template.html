@@ -1,12 +1,17 @@
 <li id="${props.phone}"
   class="list-row items-center hover:bg-base-200 focus:bg-base-200 active:bg-base-200 cursor-pointer transition-colors rounded-box select-none"
   tabindex="0" role="button" onclick="void 0">
-  <div class="flex flex-col">
-    <span class="font-medium">${props.name}</span>
-    <span class="text-xs opacity-70">${props.phone}</span>
+  <div class="avatar placeholder">
+    <div class="bg-primary/10 text-primary rounded-full w-10">
+      <span class="text-sm font-semibold">${(props.name || '?').trim().charAt(0).toUpperCase()}</span>
+    </div>
+  </div>
+  <div class="flex flex-col min-w-0">
+    <span class="font-medium truncate">${props.name}</span>
+    <span class="text-xs opacity-60">${props.phone}</span>
   </div>
   <button data-host-id=${props.hostId} data-phone="${props.phone}"
-    class="call-button btn btn-success btn-circle btn-sm ml-auto" aria-label="Call Alice Johnson">
+    class="call-button btn btn-success btn-circle btn-sm ml-auto" aria-label="Call ${props.name}">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
       stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
       <path

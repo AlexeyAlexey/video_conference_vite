@@ -1,32 +1,48 @@
-<button id="navBarLogout" class="btn btn-ghost btn-circle" aria-label="Log out" style="display: none;">
-  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="#000508"
-    stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
-    <path d="M9 12h12l-3 -3" />
-    <path d="M18 15l3 -3" />
-  </svg>
+<div class="flex items-center gap-2 justify-self-start">
+  <img src="/logo.svg" alt="" class="w-7 h-7" />
+  <span class="font-semibold text-sm hidden sm:inline">Video Conference</span>
+</div>
 
-</button>
 <details id="navBarPageMenu" class="dropdown dropdown-center justify-self-center">
-  <summary class="btn btn-ghost" aria-label="Open navigation">Menu</summary>
+  <summary class="btn btn-ghost btn-sm" aria-label="Open navigation">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
+      <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+      <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+      <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+      <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+    </svg>
+    <span id="navBarPageMenuLabel">Menu</span>
+  </summary>
   <div class="menu-overlay fixed inset-0 bg-base-300/40 hidden z-40"
     onclick="this.closest('details').removeAttribute('open')"></div>
-  <ul class="menu dropdown-content bg-base-100 rounded-box shadow z-30 mt-2 w-52">
+  <ul class="menu dropdown-content bg-base-100 rounded-box shadow-lg z-30 mt-2 w-52 p-2">
     <li><a id="navPhonesList">Phones List</a></li>
     <li><a id="navSharedLinks">Shared Links</a></li>
   </ul>
 </details>
-<details id="navBarActionMenu" class="dropdown dropdown-end justify-self-end">
-  <summary class="btn btn-ghost btn-circle" aria-label="Open menu">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-      <circle cx="12" cy="5" r="1.75" />
-      <circle cx="12" cy="12" r="1.75" />
-      <circle cx="12" cy="19" r="1.75" />
-    </svg>
-  </summary>
-  <div class="menu-overlay fixed inset-0 bg-base-300/40 hidden z-10"
-    onclick="this.closest('details').removeAttribute('open')"></div>
-  <ul id="navBarActionMenuItems" class="menu dropdown-content bg-base-100 rounded-box shadow z-30 mt-2 w-52">
 
-  </ul>
-</details>
+<div class="flex items-center gap-1 justify-self-end">
+  <button id="navBarLogout" class="btn btn-ghost btn-circle btn-sm" aria-label="Log out" style="display: none;">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+      <path d="M9 12h12l-3 -3" />
+      <path d="M18 15l3 -3" />
+    </svg>
+  </button>
+
+  <details id="navBarActionMenu" class="dropdown dropdown-end">
+    <summary class="btn btn-ghost btn-circle btn-sm" aria-label="Open menu">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+        <circle cx="12" cy="5" r="1.75" />
+        <circle cx="12" cy="12" r="1.75" />
+        <circle cx="12" cy="19" r="1.75" />
+      </svg>
+    </summary>
+    <div class="menu-overlay fixed inset-0 bg-base-300/40 hidden z-10"
+      onclick="this.closest('details').removeAttribute('open')"></div>
+    <ul id="navBarActionMenuItems" class="menu dropdown-content bg-base-100 rounded-box shadow-lg z-30 mt-2 w-52 p-2">
+    </ul>
+  </details>
+</div>
