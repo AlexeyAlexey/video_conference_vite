@@ -37,7 +37,7 @@ I want to have PWA at the end
 
 ## shared links (mocked)
 
-**double click on field to edit**
+**click on field to edit**
 
 ![double click on field to edit](github_imgs/click-on-field-to-edit.png)
 
