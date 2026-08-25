@@ -3,6 +3,9 @@ import { render } from '@/router'
 import partialSharedLink from '@/pages/sharedLinks/_sharedLink.template.html?tpl'
 import { sharedLinkListApi } from '@/api/sharedLinkListApi.js'
 import { removeSharedLinkApi } from '@/api/removeSharedLinkApi.js'
+import { renameSharedLinkApi } from '@/api/renameSharedLinkApi.js'
+import { enableSharedLinkPasswordApi } from '@/api/enableSharedLinkPasswordApi.js'
+import { disableSharedLinkPasswordApi } from '@/api/disableSharedLinkPasswordApi.js'
 
 const schema = import.meta.env.VITE_SCHEMA
 const host = import.meta.env.VITE_HOST
@@ -73,8 +76,7 @@ function startInlineEdit(li, field, asPassword = false) {
   const id = li.dataset.id;
   const name = li.dataset.name;
   const link = li.dataset.link;
-  const passwordRequired = li.passwordRequired;
-
+  const passwordRequired = li.dataset.passwordRequired === 'true';
 
   if (!li) return;
 
@@ -87,78 +89,82 @@ function startInlineEdit(li, field, asPassword = false) {
 
   input.type = asPassword ? 'password' : 'text';
   input.className = 'input input-bordered input-sm w-48';
-  input.value = field === 'name' ? (name || '') : (passwordRequired ? '***' : '');
+  input.value = field === 'name' ? (name || '') : '';
   span.replaceWith(input);
   input.focus();
   input.select();
+
+  let committed = false;
+
+  const restoreRow = (newName, newPasswordRequired) => {
+    li.insertAdjacentHTML('afterend', partialSharedLink({
+      id: id,
+      name: newName,
+      link: link,
+      password_required: newPasswordRequired
+    }));
+    li.remove();
+  };
+
   const commit = () => {
+    if (committed) return;
+    committed = true;
     const val = input.value.trim();
-    // if (field === 'name') save({ id: id, name: val }); else save({ id: id, password: val });
 
-    switch (field) {
-      case 'name':
-        update({ id: id, name: val });
-
-        li.insertAdjacentHTML('afterend', partialSharedLink({
-          id: id,
-          name: val,
-          link: link,
-          password_required: passwordRequired
-        }));
-
-        input.removeEventListener('blur', cancel);
-
-        li.remove()
-        break;
-
-      case 'password':
-        update({ id: id, password: val });
-
-        li.insertAdjacentHTML('afterend', partialSharedLink({
-          id: id,
-          name: name,
-          link: link,
-          password_required: true
-        }));
-
-        input.removeEventListener('blur', cancel);
-
-        li.remove()
-
-        break;
-
-      default:
-        li.insertAdjacentHTML('afterend', partialSharedLink({
-          id: id,
-          name: name,
-          link: link,
-          password_required: true
-        }));
-
-        input.removeEventListener('blur', cancel);
-
-        li.remove()
-      // Code runs if no cases match
-
+    if (field === 'name') {
+      if (!val) {
+        notify('Name cannot be empty', 'error');
+        restoreRow(name, passwordRequired);
+        return;
+      }
+      renameSharedLinkApi({ id: id, name: val })
+        .then(() => {
+          restoreRow(val, passwordRequired);
+          notify('Renamed', 'success');
+        })
+        .catch(e => {
+          console.error(e);
+          restoreRow(name, passwordRequired);
+          notify(e.message || 'Rename failed', 'error');
+        });
+    } else if (field === 'password') {
+      if (val) {
+        enableSharedLinkPasswordApi({ id: id, password: val })
+          .then(() => {
+            restoreRow(name, true);
+            notify('Password set', 'success');
+          })
+          .catch(e => {
+            console.error(e);
+            restoreRow(name, passwordRequired);
+            notify(e.message || 'Failed to set password', 'error');
+          });
+      } else if (passwordRequired) {
+        disableSharedLinkPasswordApi({ id: id })
+          .then(() => {
+            restoreRow(name, false);
+            notify('Password removed', 'success');
+          })
+          .catch(e => {
+            console.error(e);
+            restoreRow(name, passwordRequired);
+            notify(e.message || 'Failed to remove password', 'error');
+          });
+      } else {
+        restoreRow(name, passwordRequired);
+      }
     }
-    notify('Saved', 'success');
   };
 
   const cancel = () => {
-    li.insertAdjacentHTML('afterend', partialSharedLink({
-      id: id,
-      name: name,
-      link: link,
-      password_required: true
-    }));
-
-    input.removeEventListener('blur', cancel);
-
-    li.remove()
+    if (committed) return;
+    committed = true;
+    restoreRow(name, passwordRequired);
   };
+
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') commit();
-    if (e.key === 'Escape') cancel();
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancel(); }
   });
   input.addEventListener('blur', cancel, { once: true });
 };
@@ -226,10 +232,6 @@ function notify(msg, color = 'info') {
   n.textContent = msg;
   host.appendChild(n);
   setTimeout(() => n.remove(), 2000);
-};
-
-function update(data) {
-
 };
 
 function sharesLinksListObserver(sharesLinksList) {
