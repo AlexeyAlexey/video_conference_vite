@@ -8,6 +8,17 @@ import { storage } from '@/storage.js'
 //
 // headers:
 // authorization - string (required). Format: 'Bearer __authToken__'
+//
+// response:
+// [
+//   {
+//     "id": 1,
+//     "name": "Shared Link",
+//     "link_id": "link_id",
+//     "password_required": true/false
+//   },
+//   ...
+// ]
 export const sharedLinkListApi = (params = {}) => {
 
   return baseApi.get(`/shared_link/list`,

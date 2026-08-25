@@ -6,6 +6,9 @@ import { storage } from '@/storage.js'
 // method: patch
 // params: id - (required), name - string (required)
 // headers: authorization - string (required). Format: 'Bearer __authToken__'
+//
+// response: {"id": id, "name": "new name"}
+
 
 export const renameSharedLinkApi = (params) => {
 

@@ -7,6 +7,8 @@ import { storage } from '@/storage.js'
 // method: post
 // params: id - required, password - required
 // headers: authorization - string(required). Format: 'Bearer __authToken__'
+//
+// response: {"id": id, "password_required": true}
 
 export const enableSharedLinkPasswordApi = (params) => {
 
