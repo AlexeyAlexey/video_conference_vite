@@ -55,6 +55,11 @@ I want to have PWA at the end
 
 ![swipe left to remove](github_imgs/shared-link-modal-form.png)
 
+**Shared Conference Link password to join**
+
+
+![shared conference link password to join](github_imgs/shared-conference-link-password-to-join.png)
+
 
 https://v2.vitejs.dev/guide/#command-line-interface
 
