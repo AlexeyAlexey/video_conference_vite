@@ -1,6 +1,7 @@
 import { render, goTo, initRouter } from '@/router'
 // import { ConferenceCall } from '@/conferenceCall/conferenceCall.js'
 import { publicSharedLinkConferenceCredentialsApi } from '@/api/publicSharedLinkConferenceCredentialsApi.js'
+import { getSharedLinkPublicInfo } from '@/api/getSharedLinkPublicInfo.js'
 import { ConferenceViewParticipantManager } from '@/conferenceCall/conferenceViewParticipantManager.js'
 import { ConferenceCall } from '@/conferenceCall/conferenceCall.js'
 
@@ -125,8 +126,51 @@ export default function template(props = {}) {
 
   var conferenceCall = null;
 
-  publicSharedLinkConferenceCredentialsApi({ link_id: props.link_id }).then((credentials) => {
-    // console.log(credentials)
+  // --- Shared link gate: check password requirement, then join ---
+  const gate = document.getElementById('sharedLinkGate');
+  const gateLoading = document.getElementById('gateLoading');
+  const gatePassword = document.getElementById('gatePassword');
+  const gateError = document.getElementById('gateError');
+  const gateErrorMessage = document.getElementById('gateErrorMessage');
+  const gateRetryBtn = document.getElementById('gateRetryBtn');
+  const passwordForm = document.getElementById('sharedLinkPasswordForm');
+  const passwordInput = document.getElementById('sharedLinkPasswordInput');
+  const passwordError = document.getElementById('sharedLinkPasswordError');
+  const passwordSubmitBtn = document.getElementById('sharedLinkPasswordSubmitBtn');
+  const passwordSpinner = document.getElementById('sharedLinkPasswordSpinner');
+  const passwordBtnLabel = document.getElementById('sharedLinkPasswordBtnLabel');
+
+  function setGateState(state) {
+    if (!gate) return;
+    if (gateLoading) gateLoading.classList.toggle('hidden', state !== 'loading');
+    if (gatePassword) gatePassword.classList.toggle('hidden', state !== 'password');
+    if (gateError) gateError.classList.toggle('hidden', state !== 'error');
+  }
+
+  function hideGate() {
+    if (!gate) return;
+    gate.classList.add('hidden');
+    gate.remove();
+  }
+
+  function showGateError(message) {
+    if (gateErrorMessage) gateErrorMessage.textContent = message;
+    setGateState('error');
+  }
+
+  function setPasswordLoading(loading) {
+    if (passwordSubmitBtn) passwordSubmitBtn.disabled = loading;
+    if (passwordSpinner) passwordSpinner.classList.toggle('hidden', !loading);
+    if (passwordBtnLabel) passwordBtnLabel.textContent = loading ? 'Joining…' : 'Join';
+  }
+
+  function showPasswordError(message) {
+    if (!passwordError) return;
+    passwordError.textContent = message;
+    passwordError.classList.remove('hidden');
+  }
+
+  function joinConference(credentials) {
     conferenceCall = new ConferenceCall(
       credentials.switchboard_video_uri,
       credentials.switchboard_video_server_cert_hash,
@@ -142,7 +186,62 @@ export default function template(props = {}) {
     // conferenceCall.enableVideo();
     conferenceCall.enableAudio();
 
-  }).catch(e => console.error(e))
+    hideGate();
+  }
+
+  function fetchCredentials(password) {
+    const params = { link_id: props.link_id };
+    if (password) params.password = password;
+    return publicSharedLinkConferenceCredentialsApi(params).then((credentials) => {
+      joinConference(credentials);
+    });
+  }
+
+  function checkSharedLinkInfo() {
+    setGateState('loading');
+    getSharedLinkPublicInfo({ link_id: props.link_id }).then((info) => {
+      if (info && info.password_required) {
+        setGateState('password');
+        if (passwordInput) {
+          passwordInput.value = '';
+          passwordInput.focus();
+        }
+      } else {
+        return fetchCredentials();
+      }
+    }).catch((e) => {
+      console.error(e);
+      showGateError('Unable to load the shared link. Please check your connection and try again.');
+    });
+  }
+
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      showPasswordError('');
+      if (passwordError) passwordError.classList.add('hidden');
+
+      const password = passwordInput ? passwordInput.value : '';
+      if (!password) {
+        showPasswordError('Please enter the password.');
+        return;
+      }
+
+      setPasswordLoading(true);
+      fetchCredentials(password).catch((e) => {
+        console.error(e);
+        setPasswordLoading(false);
+        const msg = (e && e.message) ? e.message : 'Invalid password. Please try again.';
+        showPasswordError(msg.charAt(0).toUpperCase() + msg.slice(1));
+      });
+    });
+  }
+
+  if (gateRetryBtn) {
+    gateRetryBtn.addEventListener('click', () => checkSharedLinkInfo());
+  }
+
+  checkSharedLinkInfo();
 
 
   if (toggleCamBtn) {

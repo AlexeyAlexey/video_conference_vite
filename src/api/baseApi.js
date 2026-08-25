@@ -32,6 +32,8 @@ const baseFetch = (path, params, config = {}) => {
             const errBody = await response.json();
             if (errBody && (errBody.error || errBody.message)) {
               message = errBody.error || errBody.message;
+            } else if (errBody && errBody.errors && (errBody.errors.detail || errBody.errors.message)) {
+              message = errBody.errors.detail || errBody.errors.message;
             }
           } catch (_) { /* body was not JSON */ }
           const err = new Error(message);
