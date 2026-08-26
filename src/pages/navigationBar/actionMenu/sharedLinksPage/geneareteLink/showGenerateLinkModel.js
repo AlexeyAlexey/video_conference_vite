@@ -20,24 +20,61 @@ export function showGenerateLinkModel(opts = {}) {
 
 
   const form = document.getElementById('generateLinkModelForm');
+  const passwordToggle = document.getElementById('shared_password_toggle');
+  const passwordField = document.getElementById('shared_password_field');
+  const passwordInput = document.getElementById('shared_password');
+  const passwordError = document.getElementById('shared_password_error');
+
+  function syncPasswordField() {
+    const required = passwordToggle && passwordToggle.checked;
+    if (passwordField) passwordField.classList.toggle('hidden', !required);
+    if (passwordInput) {
+      passwordInput.required = required;
+      if (!required) passwordInput.value = '';
+    }
+    if (passwordError) {
+      passwordError.classList.add('hidden');
+      passwordError.textContent = '';
+    }
+  }
+
+  if (passwordToggle) {
+    passwordToggle.addEventListener('change', syncPasswordField);
+  }
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    if (!form.reportValidity()) return;
 
-    // TODO Process failed request
-    // TODO add password
+    const requirePassword = passwordToggle ? passwordToggle.checked : false;
+    const name = (form.elements['name'] ? form.elements['name'].value : '').trim();
+    const password = passwordInput ? passwordInput.value : '';
+
+    if (requirePassword && !password) {
+      if (passwordError) {
+        passwordError.textContent = 'Please enter a password.';
+        passwordError.classList.remove('hidden');
+      }
+      if (passwordInput) passwordInput.focus();
+      return;
+    }
+
+    const data = { name };
+    if (requirePassword) data.password = password;
+
     generateSharedLinkApi(data).then((response) => {
       console.info(response)
+      generateLinkModel.close();
+      generateLinkModel.remove();
       render('/shared-links')
-
-    }).catch(e => console.error(e))
-
-
-    generateLinkModel.close();
-    generateLinkModel.remove();
+    }).catch(e => {
+      console.error(e)
+      if (passwordError) {
+        passwordError.textContent = (e && e.message) ? e.message : 'Sorry, your request failed. Please try again.';
+        passwordError.classList.remove('hidden');
+      }
+    })
 
   });
 

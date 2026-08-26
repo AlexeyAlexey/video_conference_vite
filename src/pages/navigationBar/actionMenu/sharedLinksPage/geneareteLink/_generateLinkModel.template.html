@@ -3,18 +3,26 @@
     <form method="dialog">
       <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2" aria-label="Close">✕</button>
     </form>
-    <h3 class="font-bold text-lg mb-4">Add shared link</h3>
+    <h3 class="font-bold text-lg mb-4">Generate shared link</h3>
     <form id="${props.formId}" method="dialog">
       <div class="form-control w-full mb-3">
         <label class="label"><span class="label-text">Name</span></label>
         <input type="text" class="input input-bordered w-full" id="shared_name" name="name" required />
       </div>
-      <!-- <div class="form-control w-full mb-4">
+      <div class="form-control w-full mb-3">
+        <label class="label cursor-pointer justify-between">
+          <span class="label-text">Require password</span>
+          <input type="checkbox" class="toggle toggle-primary" id="shared_password_toggle" />
+        </label>
+      </div>
+      <div id="shared_password_field" class="form-control w-full mb-4 hidden">
         <label class="label"><span class="label-text">Password</span></label>
-        <input type="password" class="input input-bordered w-full" id="shared_password" name="password" />
-      </div> -->
+        <input type="password" class="input input-bordered w-full" id="shared_password" name="password"
+          placeholder="••••••••" autocomplete="new-password" />
+        <div id="shared_password_error" class="hidden alert alert-error text-sm py-2 mt-2" role="alert"></div>
+      </div>
       <div class="modal-action">
-        <button class="btn" type="submit">Save</button>
+        <button class="btn btn-primary" type="submit">Generate</button>
       </div>
     </form>
   </div>

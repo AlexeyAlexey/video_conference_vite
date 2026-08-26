@@ -27,15 +27,44 @@ function rowInteractiveEffects(li) {
   li.addEventListener('keyup', (e) => { if (e.key === 'Enter' || e.key === ' ') rm(); }, { passive: true });
 };
 
+function updateListState() {
+  const list = document.getElementById('sharesLinksList');
+  const countEl = document.getElementById('sharedLinksCount');
+  const emptyEl = document.getElementById('sharedLinksEmpty');
+  if (!list) return;
+  const n = list.children.length;
+  if (countEl) countEl.textContent = n === 1 ? '1 link' : `${n} links`;
+  if (emptyEl) {
+    if (n === 0) {
+      emptyEl.classList.remove('hidden');
+      emptyEl.classList.add('flex');
+    } else {
+      emptyEl.classList.add('hidden');
+      emptyEl.classList.remove('flex');
+    }
+  }
+};
+
 function removeItem(liEl) {
   liEl.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
   liEl.style.transform = 'translateX(-100%)';
   liEl.style.opacity = '0';
   setTimeout(() => {
-    removeSharedLinkApi({ id: liEl.dataset.id }).then((response) => {
+    removeSharedLinkApi({ id: liEl.dataset.id }).then(() => {
+      liEl.remove();
+      updateListState();
       notify('Removed', 'success');
-    }).catch(e => console.error(e));
-
+    }).catch(e => {
+      console.error(e);
+      // Restore the row if the request failed
+      liEl.style.transform = 'translateX(0)';
+      liEl.style.opacity = '1';
+      const contentWrapper = liEl.querySelector('.swipe-content-wrapper');
+      if (contentWrapper) contentWrapper.style.transform = 'translateX(0)';
+      const swipeBgEl = liEl.querySelector('.swipe-bg');
+      if (swipeBgEl) { swipeBgEl.classList.add('opacity-0', 'pointer-events-none'); swipeBgEl.classList.remove('opacity-100'); }
+      notify((e && e.message) || 'Failed to remove', 'error');
+    });
   }, 280);
 };
 
