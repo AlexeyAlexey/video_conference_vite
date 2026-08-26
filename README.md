@@ -35,7 +35,7 @@ I want to have PWA at the end
 ![action menu](github_imgs/action-menu.png)
 
 
-## shared links (mocked)
+## Shared Links
 
 **click on field to edit**
 
