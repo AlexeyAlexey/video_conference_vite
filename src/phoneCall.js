@@ -1,15 +1,15 @@
 import { StreamServer } from "@/streamServer.js"
 import { decodeVideoChunk } from '@/utils/decodeVideoChunk.js';
 import { decodeAudioChunk } from '@/utils/decodeAudioChunk.js';
-import { decodeChunk } from '@/utils/decodeChunk.js';
+// import { decodeChunk } from '@/utils/decodeChunk.js';
+import { decodeChunk } from '@/utils/conference/decodeConferenceChunk.js';
 import { RemoteUserPlayer } from '@/remoteUserPlayer.js';
 import { UserStreamCamera } from '@/userStreamCamera.js';
 import { SoundPlayer } from '@/soundPlayer.js';
 import { eventDispatcher } from '@/eventDispatcher.js'
+import { ConferenceStreamParser } from "@/conferenceCall/conferenceStreamParser.js"
 
 
-// caller
-// receiver
 export class PhoneCall {
   constructor(phone,
     toPhone,
@@ -26,8 +26,16 @@ export class PhoneCall {
     this.switchboardVideoUri = switchboardVideoUri;
     this.switchboardAudioUri = switchboardAudioUri;
 
-    this.videoStream = new StreamServer(switchboardVideoUri, switchboardVideoServerCertHash);
-    this.audioStream = new StreamServer(switchboardAudioUri, switchboardAudioServerCertHash);
+    // this.videoStream = new StreamServer(switchboardVideoUri, switchboardVideoServerCertHash);
+    // this.audioStream = new StreamServer(switchboardAudioUri, switchboardAudioServerCertHash);
+
+    this.videoStream = new StreamServer(switchboardVideoUri,
+      switchboardVideoServerCertHash,
+      new ConferenceStreamParser(1024 * 1024)
+    );
+    this.audioStream = new StreamServer(switchboardAudioUri,
+      switchboardAudioServerCertHash,
+      new ConferenceStreamParser(1024 * 1024));
 
     this.remoteUserPlayer = new RemoteUserPlayer(remoteUserVideoElement);
 
@@ -105,11 +113,7 @@ export class PhoneCall {
     this.videoStream.reader((value) => {
       if (value) {
         try {
-          // const decoded = decodeVideoChunk(value);
-
           const decoded = decodeChunk(value);
-
-          // console.log(decoded);
 
           if (decoded.dataType == "video") {
             this.remoteUserPlayer.playVideo(decoded)
@@ -117,11 +121,6 @@ export class PhoneCall {
             // this.soundPlayer.play(decoded.body)
             console.log(`video closed ${decoded.body}`)
           }
-
-
-
-          // this.remoteUserPlayer.playVideo(decoded)
-
         } catch (error) {
           console.info("Stream Video reader error:", error);
         }
