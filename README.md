@@ -4,6 +4,8 @@ A real-time **video & audio conferencing PWA** built with **Vite + vanilla JavaS
 
 This is the frontend for the [Video Conference app](https://github.com/AlexeyAlexey/video_conference) and pairs with the [http3_server](https://github.com/AlexeyAlexey/http3_server) media relay. It is a prototype — the goal is a fully installable PWA.
 
+**All-in-one setup:** [videoconference_docker_compose](https://github.com/AlexeyAlexey/videoconference_docker_compose) — runs all three apps together
+
 > Signalling (who is calling whom, shared-link management, auth) runs over **Phoenix Channels (WebSocket)**. The actual media (video/audio) runs over **WebTransport** so it is not blocked by the WebSocket channel.
 
 ---
