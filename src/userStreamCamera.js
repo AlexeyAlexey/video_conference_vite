@@ -1,6 +1,7 @@
 import { AudioChunkDecoder } from '@/audioDecoder.js';
 import { encodeVideoChunk } from '@/utils/encodeVideoChunk.js';
 import { encodeAudioChunk } from '@/utils/encodeAudioChunk.js';
+import { eventDispatcher } from '@/eventDispatcher.js';
 
 
 class UserStreamCameraVideo {
@@ -64,7 +65,7 @@ class UserStreamCameraVideo {
       return;
     }
 
-    const codec = this.settings.codec;
+    const codec = this.settings.codec || 'vp8';
 
     const support = await VideoEncoder.isConfigSupported({
       codec,
@@ -388,7 +389,7 @@ class UserStreamCameraAudio {
 }
 
 export class UserStreamCamera {
-  constructor(videoElement, videoStream, audioStream, videoSettings = {}, audioSettings = {}) {
+  constructor(videoElement, videoStream = null, audioStream = null, videoSettings = {}, audioSettings = {}) {
     this.mediaStream = null;
     this.abortController = null;
     this.encoder = null;
@@ -410,35 +411,66 @@ export class UserStreamCamera {
     this.runAudio = false;
 
     this.video = videoElement;
+    this.mediaRequest = null;
 
     this.video.setAttribute("autoplay", true);
     this.video.setAttribute("playsinline", '');
 
 
-    this.#initMediaStream()
+    this.ensureMediaStream()
 
 
   }
 
+  setVideoStream(videoStream) {
+    this.videoStream = videoStream;
+  }
+
+  setAudioStream(audioStream) {
+    this.audioStream = audioStream;
+  }
+
   enableVideo() {
+    this.videoEnabled = true;
+    this.videoSettings.videoEnabled = true;
+
     if (this.videoProcessor) {
       this.videoProcessor.videoEnabled = true;
     }
   }
 
   disableVideo() {
+    this.videoEnabled = false;
+    this.videoSettings.videoEnabled = false;
+
     if (this.videoProcessor) {
       this.videoProcessor.videoEnabled = false;
     }
   }
 
+  stopVideo() {
+    this.runVideo = false;
+    this.audioEnabled = false;
+
+    this.videoProcessor?.abort();
+    this.videoProcessor = null;
+
+    return true
+  }
+
   enableAudio() {
+    this.audioEnabled = true;
+    this.audioSettings.audioEnabled = true;
+
     if (this.audioProcessor) {
       this.audioProcessor.audioEnabled = true;
     }
   }
 
   disableAudio() {
+    this.audioEnabled = false;
+    this.audioSettings.audioEnabled = false;
+
     if (this.audioProcessor) {
       this.audioProcessor.audioEnabled = false;
     }
@@ -446,13 +478,22 @@ export class UserStreamCamera {
 
   async startVideo() {
     this.runVideo = true;
-    if (this.mediaStream) {
+
+    if (this.videoProcessor) return true;
+
+    if (!this.mediaStream) {
+      await this.ensureMediaStream();
+    }
+
+    if (this.mediaStream && this.videoStream !== null) {
       this.videoProcessor = new UserStreamCameraVideo(
         this.mediaStream,
         this.videoStream,
         this.videoSettings)
       this.videoProcessor.start()
+
       console.log('video processing starting...');
+
       true
     } else {
       console.log('Media stream has not been initialized yet ...');
@@ -463,7 +504,13 @@ export class UserStreamCamera {
   async startAudio() {
     this.runAudio = true;
 
-    if (this.mediaStream) {
+    if (this.audioProcessor) return true;
+
+    if (!this.mediaStream) {
+      await this.ensureMediaStream();
+    }
+
+    if (this.mediaStream && this.audioStream !== null) {
       this.audioProcessor = new UserStreamCameraAudio(
         this.mediaStream,
         this.audioStream,
@@ -481,44 +528,68 @@ export class UserStreamCamera {
   stop(reason = 'stopped') {
     this.audioProcessor?.abort();
     this.videoProcessor?.abort();
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(t => t.stop());
+      this.mediaStream = null;
+    }
+    if (this.video) {
+      this.video.srcObject = null;
+    }
   }
 
-  async #initMediaStream() {
-    if (this.videoProcessor) return;
+  ensureMediaStream() {
+    if (this.mediaStream) return Promise.resolve(this.mediaStream);
+    if (this.mediaRequest) return this.mediaRequest;
 
-    console.log('requesting camera');
-    try {
-      this.mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          width: { ideal: this.videoSettings.width },
-          height: { ideal: this.videoSettings.height },
-          frameRate: { ideal: this.frameRate }
-        }
-        // video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }
-      });
-      console.info("mediaStream initialized")
-
-      if (this.runVideo) {
-        this.startVideo();
-      };
-
-      if (this.runAudio) {
-        this.startAudio();
-      }
-    } catch (err) {
-
-      console.error('getUserMedia failed', err);
-
-      this.running = false;
-      return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      const err = new Error('Media devices are unavailable in this browser context');
+      this.#onMediaError(err, 'unsupported');
+      return Promise.resolve(null);
     }
 
-    this.video.srcObject = this.mediaStream;
-    await this.video.play().catch((e) => {
-      console.error("video cannot be played", e)
+    console.log('requesting camera');
+    this.mediaRequest = navigator.mediaDevices.getUserMedia({
+      audio: true,
+      video: {
+        width: { ideal: this.videoSettings.width },
+        height: { ideal: this.videoSettings.height },
+        frameRate: { ideal: this.videoSettings.frameRate }
+      }
+      // video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } }
+    }).then(async (stream) => {
+      console.info("mediaStream initialized")
+      this.mediaStream = stream;
+
+      this.video.srcObject = stream;
+      await this.video.play().catch((e) => {
+        console.error("video cannot be played", e)
+      });
+
+      return stream;
+    }).catch((err) => {
+      const reason = err?.name === 'NotAllowedError' ? 'denied'
+        : (err?.name === 'NotFoundError' || err?.name === 'OverconstrainedError') ? 'no-device'
+          : err?.name === 'NotReadableError' ? 'in-use'
+            : 'error';
+      this.#onMediaError(err, reason);
+      return null;
+    }).finally(() => {
+      this.mediaRequest = null;
     });
 
+    return this.mediaRequest;
+  }
+
+  #onMediaError(err, reason) {
+    if (reason === 'denied') {
+      console.warn('Camera/microphone access denied — the call continues without local media. ' +
+        'Allow camera and microphone in the browser (or open the app in a regular browser) to enable them.', err);
+    } else {
+      console.error('getUserMedia failed', err);
+    }
+
+    this.running = false;
+    eventDispatcher.emit('user-media-error', { reason, error: err });
   }
 
 

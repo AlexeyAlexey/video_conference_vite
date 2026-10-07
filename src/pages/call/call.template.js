@@ -1,6 +1,7 @@
 import { render, goTo, initRouter } from '@/router'
 import { PhoneCall } from '@/phoneCall.js'
 import { storage } from '@/storage.js'
+import { eventDispatcher } from '@/eventDispatcher.js'
 
 
 export default function template(props = {}) {
@@ -109,6 +110,16 @@ export default function template(props = {}) {
   const callStatusEl = document.getElementById('callStatus');
   let callSeconds = 0;
   let callTimerInterval = null;
+  let mediaUnavailable = false;
+
+  eventDispatcher.subscribe('user-media-error', 'callPage', ({ reason }) => {
+    mediaUnavailable = true;
+    if (callStatusEl) {
+      callStatusEl.textContent = reason === 'denied'
+        ? 'Camera/mic blocked — receive only'
+        : 'Camera/mic unavailable — receive only';
+    }
+  });
 
   const formatTime = (s) => {
     const m = Math.floor(s / 60).toString().padStart(2, '0');
@@ -118,7 +129,7 @@ export default function template(props = {}) {
 
   const startCallTimer = () => {
     if (callTimerInterval) return;
-    if (callStatusEl) callStatusEl.textContent = 'In call';
+    if (callStatusEl && !mediaUnavailable) callStatusEl.textContent = 'In call';
     callTimerInterval = setInterval(() => {
       callSeconds++;
       if (callTimerEl) callTimerEl.textContent = formatTime(callSeconds);

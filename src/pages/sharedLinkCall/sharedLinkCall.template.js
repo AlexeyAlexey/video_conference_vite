@@ -4,6 +4,7 @@ import { publicSharedLinkConferenceCredentialsApi } from '@/api/publicSharedLink
 import { getSharedLinkPublicInfo } from '@/api/getSharedLinkPublicInfo.js'
 import { ConferenceViewParticipantManager } from '@/conferenceCall/conferenceViewParticipantManager.js'
 import { ConferenceCall } from '@/conferenceCall/conferenceCall.js'
+import { eventDispatcher } from '@/eventDispatcher.js'
 
 
 export default function template(props = {}) {
@@ -102,6 +103,15 @@ export default function template(props = {}) {
   function announce(msg) {
     if (ariaStatus) ariaStatus.textContent = msg;
   }
+
+  eventDispatcher.subscribe('user-media-error', 'sharedLinkCall', ({ reason }) => {
+    if (reason === 'denied') {
+      announce('Camera and microphone access was denied. You can still see and hear other participants.');
+      if (localMicBadge) localMicBadge.textContent = 'Mic unavailable';
+    } else {
+      announce('Camera and microphone are unavailable. You can still see and hear other participants.');
+    }
+  });
 
   function createParticipant(name) {
     const card = document.createElement('div');
@@ -272,6 +282,12 @@ export default function template(props = {}) {
       if (iconMicOn && iconMicOff) {
         iconMicOn.classList.toggle('hidden', !isMicOn);
         iconMicOff.classList.toggle('hidden', isMicOn);
+      }
+      if (isMicOn) {
+        if (conferenceCall) { conferenceCall.enableAudio() };
+      } else {
+        if (conferenceCall) { conferenceCall.disableAudio() };
+
       }
       announce(isMicOn ? 'Microphone on' : 'Microphone off');
     });

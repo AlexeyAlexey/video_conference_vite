@@ -1,7 +1,9 @@
 import { StreamServer } from "@/streamServer.js"
-import { decodeVideoChunk } from '@/utils/decodeVideoChunk.js';
-import { decodeAudioChunk } from '@/utils/decodeAudioChunk.js';
+// import { decodeVideoChunk } from '@/utils/decodeVideoChunk.js';
+// import { decodeAudioChunk } from '@/utils/decodeAudioChunk.js';
 import { decodeChunk } from '@/utils/conference/decodeConferenceChunk.js';
+import { decodeConferenceVideoChunk } from '@/utils/conference/decodeConferenceVideoChunk.js';
+import { decodeConferenceAudioChunk } from '@/utils/conference/decodeConferenceAudioChunk.js';
 import { encodeEvent } from '@/utils/encodeEvent.js';
 import { UserStreamCamera } from '@/userStreamCamera.js';
 import { SoundPlayer } from '@/soundPlayer.js';
@@ -10,9 +12,9 @@ import { ConferenceStreamParser } from "@/conferenceCall/conferenceStreamParser.
 import { ConferenceParticipantManager } from "@/conferenceCall/conferenceParticipantManager.js"
 
 export class ConferenceCall {
-	constructor(switchboardVideoUri,
+	constructor(switchboardVideoUri = null,
 		switchboardVideoServerCertHash = null,
-		switchboardAudioUri,
+		switchboardAudioUri = null,
 		switchboardAudioServerCertHash = null,
 		currentParticipantName = null,
 		viewParticipantManager,
@@ -22,27 +24,46 @@ export class ConferenceCall {
 		this.switchboardVideoUri = switchboardVideoUri;
 		this.switchboardAudioUri = switchboardAudioUri;
 
-		this.videoStream = new StreamServer(switchboardVideoUri,
-			switchboardVideoServerCertHash,
-			new ConferenceStreamParser(1024 * 1024),
-			{
-				initUnidirectionalStreamWriter: false,
-				initUnidirectionalStreamReader: false
-			});
+		if (switchboardVideoUri == null) {
+			this.videoStream = null;
+		}
+		else {
+			this.videoStream = new StreamServer(switchboardVideoUri,
+				switchboardVideoServerCertHash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
+				});
+		}
+		// this.videoStream = new StreamServer(switchboardVideoUri,
+		// 	switchboardVideoServerCertHash,
+		// 	new ConferenceStreamParser(1024 * 1024),
+		// 	{
+		// 		initUnidirectionalStreamWriter: false,
+		// 		initUnidirectionalStreamReader: false
+		// 	});
 
-		this.audioStream = new StreamServer(switchboardAudioUri,
-			switchboardAudioServerCertHash,
-			new ConferenceStreamParser(1024 * 1024),
-			{
-				initUnidirectionalStreamWriter: false,
-				initUnidirectionalStreamReader: false
-			});
+		if (switchboardAudioUri == null) {
+			this.audioStream = null
+		} else {
+			this.audioStream = new StreamServer(switchboardAudioUri,
+				switchboardAudioServerCertHash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
+				});
+		};
+
 
 		this.userStreamCamera = new UserStreamCamera(
 			currentParticipantVideoElement,
+			null,
+			null,
 			// this.videoStream.unidirectionalWrite.bind(this.videoStream),
-			this.videoStream.write.bind(this.videoStream),
-			this.audioStream.write.bind(this.audioStream),
+			// this.videoStream.write.bind(this.videoStream),
+			// this.audioStream.write.bind(this.audioStream),
 			// this.audioStream.unidirectionalWrite.bind(this.audioStream),
 			{
 				codec: 'vp8',
@@ -54,6 +75,9 @@ export class ConferenceCall {
 			{ audioEnabled: opts.audioEnabled ?? true }
 		);
 
+		this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
+		this.userStreamCamera.setAudioStream(this.audioStream.write.bind(this.audioStream));
+
 		this.soundPlayer = new SoundPlayer()
 
 		this.currentParticipantName = currentParticipantName || "";
@@ -63,55 +87,68 @@ export class ConferenceCall {
 	}
 
 	start() {
-		this.videoStream.connect()
-			.catch((e) => { console.info(`cannot connect to a server for video streaming error: ${e}`) })
-			.then(() => {
+		if (this.videoStream !== null) {
+			this.videoStream.connect()
+				.catch((e) => { console.info(`cannot connect to a server for video streaming error: ${e}`) })
+				.then(() => {
 
-				console.info('connected to a server to stream video');
-
-
-				this.userStreamCamera.startVideo();
-
-				this.startVideoReading();
+					console.info('connected to a server to stream video');
 
 
-				// this.startUnidirectionalVideoReading();
+					this.userStreamCamera.startVideo();
+
+					this.startVideoReading();
 
 
-			});
-
-		this.audioStream.connect()
-			.catch((e) => { console.info(`cannot connect to a server for audio streaming error: ${e}`) })
-			.then(() => {
-
-				this.userStreamCamera.startAudio();
-
-				this.startAudioReading();
+					// this.startUnidirectionalVideoReading();
 
 
-				// this.startUnidirectionalAudioReading();
+				});
+		};
+
+		if (this.audioStream !== null) {
+			this.audioStream.connect()
+				.catch((e) => { console.info(`cannot connect to a server for audio streaming error: ${e}`) })
+				.then(() => {
+
+					this.userStreamCamera.startAudio();
+
+					this.startAudioReading();
 
 
-			});
+					// this.startUnidirectionalAudioReading();
 
+
+				});
+		}
 		// this.#sendEvent(`name:${this.currentParticipantName}`);
 	}
 
 	end() {
 		this.userStreamCamera.stop('user_ended_call')
 
-		this.videoStream.disconnect('user_ended_call');
-		this.audioStream.disconnect('user_ended_call');
+		if (this.videoStream !== null) {
+			this.videoStream.disconnect('user_ended_call');
+		};
+
+
+		if (this.audioStream !== null) {
+			this.audioStream.disconnect('user_ended_call');
+		};
+
 		eventDispatcher.emit("conference-call-ended", { reason: 'reason' })
 
 	}
 
 	enableVideo() {
+		// this.userStreamCamera.enableVideo();
+		// this.userStreamCamera.startVideo();
 		this.userStreamCamera.enableVideo();
 	}
 
 	disableVideo() {
 		this.userStreamCamera.disableVideo();
+		// this.userStreamCamera.stopVideo();
 	}
 
 	enableAudio() {
@@ -151,46 +188,47 @@ export class ConferenceCall {
 	}
 
 
-	#process_stream_package(value) {
-		if (value) {
-			try {
-				const decoded = decodeChunk(value);
+	// #process_stream_package(value) {
+	// 	if (value) {
+	// 		try {
+	// 			const decoded = decodeChunk(value);
 
-				if (decoded.dataType == "audio") {
-					this.participantManager.playAudio(decoded.participantId, decoded);
-				} else if (decoded.dataType == "ringtone") {
-					// this.soundPlayer.play(decoded.body)
-				} else if (decoded.dataType == "close") {
-					// this.soundPlayer.play(decoded.body)
-					console.log(`audio closed ${decoded.body}`)
+	// 			if (decoded.dataType == "audio") {
+	// 				this.participantManager.playAudio(decoded.participantId, decoded);
+	// 			} else if (decoded.dataType == "ringtone") {
+	// 				// this.soundPlayer.play(decoded.body)
+	// 			} else if (decoded.dataType == "close") {
+	// 				// this.soundPlayer.play(decoded.body)
+	// 				console.log(`audio closed ${decoded.body}`)
 
-					eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
-				} else if (decoded.dataType == "event") {
-					this.#processEvent(decoded.participantId, decoded.body);
-				}
+	// 				eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
+	// 			} else if (decoded.dataType == "event") {
+	// 				this.#processEvent(decoded.participantId, decoded.body);
+	// 			}
 
-			} catch (error) {
-				console.info("Stream Audio reader error:", error);
+	// 		} catch (error) {
+	// 			console.info("Stream Audio reader error:", error);
 
-				console.log(value)
-			}
+	// 			console.log(value)
+	// 		}
 
-		}
-	}
+	// 	}
+	// }
 
 
 	async startVideoReading() {
 		this.videoStream.reader((value) => {
 			if (value) {
 				try {
-					const decoded = decodeChunk(value);
+					const decoded = decodeConferenceVideoChunk(value);
+					this.participantManager.playVideo(decoded.participantId, decoded);
 
-					if (decoded.dataType == "video") {
-						this.participantManager.playVideo(decoded.participantId, decoded);
-					} else if (decoded.dataType == "close") {
-						// this.soundPlayer.play(decoded.body)
-						console.log(`video closed ${decoded.body}`)
-					}
+					// if (decoded.dataType == "video") {
+					// 	this.participantManager.playVideo(decoded.participantId, decoded);
+					// } else if (decoded.dataType == "close") {
+					// 	// this.soundPlayer.play(decoded.body)
+					// 	console.log(`video closed ${decoded.body}`)
+					// }
 
 				} catch (error) {
 					console.info("Stream Video reader error:", error);
@@ -202,30 +240,30 @@ export class ConferenceCall {
 
 	async startUnidirectionalVideoReading() {
 		this.videoStream.unidirectionalReader((value) => {
-			if (value) {
-				try {
-					const decoded = decodeChunk(value);
+			// if (value) {
+			// 	try {
+			// 		const decoded = decodeChunk(value);
 
-					console.log(value)
+			// 		console.log(value)
 
-					if (decoded.dataType == "video") {
-						this.participantManager.playVideo(decoded.participantId, decoded);
-					} else if (decoded.dataType == "close") {
-						// this.soundPlayer.play(decoded.body)
-						console.log(`video closed ${decoded.body}`)
-					}
+			// 		if (decoded.dataType == "video") {
+			// 			this.participantManager.playVideo(decoded.participantId, decoded);
+			// 		} else if (decoded.dataType == "close") {
+			// 			// this.soundPlayer.play(decoded.body)
+			// 			console.log(`video closed ${decoded.body}`)
+			// 		}
 
-				} catch (error) {
-					console.info("Stream Video reader error:", error);
-				}
+			// 	} catch (error) {
+			// 		console.info("Stream Video reader error:", error);
+			// 	}
 
-			}
+			// }
 		});
 	}
 
 	async startUnidirectionalAudioReading() {
 		this.audioStream.unidirectionalReader((value) => {
-			this.#process_stream_package(value);
+			// this.#process_stream_package(value);
 
 			// if (value) {
 			// 	try {
@@ -253,32 +291,16 @@ export class ConferenceCall {
 
 	async startAudioReading() {
 		this.audioStream.reader((value) => {
-			this.#process_stream_package(value);
-			// if (value) {
-			// 	try {
-			// 		const decoded = decodeChunk(value);
+			// this.#process_stream_package(value);
 
-			// 		if (decoded.dataType == "audio") {
-			// 			this.participantManager.playAudio(decoded.participantId, decoded);
-			// 		} else if (decoded.dataType == "ringtone") {
-			// 			// this.soundPlayer.play(decoded.body)
-			// 		} else if (decoded.dataType == "close") {
-			// 			// this.soundPlayer.play(decoded.body)
-			// 			console.log(`audio closed ${decoded.body}`)
+			try {
+				const decoded = decodeConferenceAudioChunk(value);
 
-			// 			eventDispatcher.emit("conference-call-ended", { reason: decoded.body, from: this.phone, to: this.toPhone })
-			// 		} else if (decoded.dataType == "event") {
-			// 			this.#processEvent(decoded.participantId, decoded.body);
-			// 		}
+				this.participantManager.playAudio(decoded.participantId, decoded);
 
-			// 	} catch (error) {
-			// 		console.info("Stream Audio reader error:", error);
-
-			// 		console.log(value)
-			// 	}
-
-			// }
-
+			} catch (error) {
+				console.info("Stream Audio reader error:", error);
+			}
 
 		})
 	}
