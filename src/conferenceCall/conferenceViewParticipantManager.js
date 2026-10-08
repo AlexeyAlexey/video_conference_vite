@@ -1,3 +1,5 @@
+import { html } from '@/escapeHtml.js'
+
 export class ConferenceViewParticipantManager {
   constructor(participantsContainerId) {
     this.participantsContainerId = participantsContainerId;
@@ -81,7 +83,7 @@ export class ConferenceViewParticipantManager {
     const card = document.createElement('div');
     card.className = 'card bg-base-100 shadow overflow-hidden';
     card.id = `participantContainer:${participantId}`
-    card.innerHTML = `
+    card.innerHTML = html`
       <figure class="aspect-video bg-base-300 relative">
         <video id="video:${participantId}" class="w-full h-full object-cover" autoplay muted playsinline></video>
         <div id="name:${participantId}" data-role="name"

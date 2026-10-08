@@ -1,5 +1,6 @@
 import { phoneChannel } from '@/channels/phoneChannel.js'
 import { render } from '@/router'
+import { html } from '@/escapeHtml.js'
 
 
 export function addCallNotification({ from_host, from }, opts = {}) {
@@ -9,7 +10,7 @@ export function addCallNotification({ from_host, from }, opts = {}) {
 
   el.setAttribute('role', 'alert');
   el.className = 'alert bg-base-100 shadow-xl w-full max-w-full relative rounded-2xl animate-slide-in-top';
-  el.innerHTML = `
+  el.innerHTML = html`
           <button type="button" class="btn btn-ghost btn-circle btn-xs absolute right-1.5 top-1.5 z-20" aria-label="Dismiss" data-action="close">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5">
               <path d="M18 6 6 18"></path>

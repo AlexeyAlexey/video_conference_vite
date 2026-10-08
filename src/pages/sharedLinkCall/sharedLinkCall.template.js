@@ -5,6 +5,7 @@ import { getSharedLinkPublicInfo } from '@/api/getSharedLinkPublicInfo.js'
 import { ConferenceViewParticipantManager } from '@/conferenceCall/conferenceViewParticipantManager.js'
 import { ConferenceCall } from '@/conferenceCall/conferenceCall.js'
 import { eventDispatcher } from '@/eventDispatcher.js'
+import { html } from '@/escapeHtml.js'
 
 
 export default function template(props = {}) {
@@ -116,7 +117,7 @@ export default function template(props = {}) {
   function createParticipant(name) {
     const card = document.createElement('div');
     card.className = 'card bg-base-100 shadow';
-    card.innerHTML = `
+    card.innerHTML = html`
       <figure class="aspect-video bg-base-300">
         <video class="w-full h-full object-cover" autoplay muted playsinline></video>
       </figure>

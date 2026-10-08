@@ -12,7 +12,7 @@ export default function templatePlugin() {
       },
       handler(src, id) {
         return {
-          code: `export default function template(props = {}) {return \`${src}\`;};`,
+          code: `import { html as __escapeTemplate } from '@/escapeHtml.js';\nexport default function template(props = {}) {return __escapeTemplate\`${src}\`;};`,
           map: null, // provide source map if available
         }
       }
