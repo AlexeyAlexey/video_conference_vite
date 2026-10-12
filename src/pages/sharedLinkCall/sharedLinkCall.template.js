@@ -183,10 +183,7 @@ export default function template(props = {}) {
 
   function joinConference(credentials) {
     conferenceCall = new ConferenceCall(
-      credentials.switchboard_video_uri,
-      credentials.switchboard_video_server_cert_hash,
-      credentials.switchboard_audio_uri,
-      credentials.switchboard_audio_server_cert_hash,
+      credentials,
       "currentParticipantName",
       conferenceViewParticipantManager,
       localVideo

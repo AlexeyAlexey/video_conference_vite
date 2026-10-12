@@ -1,9 +1,11 @@
 import { StreamServer } from "@/streamServer.js"
 // import { decodeVideoChunk } from '@/utils/decodeVideoChunk.js';
 // import { decodeAudioChunk } from '@/utils/decodeAudioChunk.js';
-import { decodeChunk } from '@/utils/conference/decodeConferenceChunk.js';
+// import { decodeChunk } from '@/utils/conference/decodeConferenceChunk.js';
 import { decodeConferenceVideoChunk } from '@/utils/conference/decodeConferenceVideoChunk.js';
 import { decodeConferenceAudioChunk } from '@/utils/conference/decodeConferenceAudioChunk.js';
+import { decodeConferenceEventChunk } from '@/utils/conference/decodeConferenceEventChunk.js';
+
 import { encodeEvent } from '@/utils/encodeEvent.js';
 import { UserStreamCamera } from '@/userStreamCamera.js';
 import { SoundPlayer } from '@/soundPlayer.js';
@@ -12,43 +14,35 @@ import { ConferenceStreamParser } from "@/conferenceCall/conferenceStreamParser.
 import { ConferenceParticipantManager } from "@/conferenceCall/conferenceParticipantManager.js"
 
 export class ConferenceCall {
-	constructor(switchboardVideoUri = null,
-		switchboardVideoServerCertHash = null,
-		switchboardAudioUri = null,
-		switchboardAudioServerCertHash = null,
+	constructor(
+		stream_server_credentials = {},
 		currentParticipantName = null,
 		viewParticipantManager,
 		currentParticipantVideoElement,
 		opts = {}) {
 
-		this.switchboardVideoUri = switchboardVideoUri;
-		this.switchboardAudioUri = switchboardAudioUri;
+		this.streamServerVideoUri = stream_server_credentials.stream_server_video_uri || null; // streamServerVideoUri;
+		this.streamServerAudioUri = stream_server_credentials.stream_server_audio_uri || null //streamServerAudioUri;
+		this.streamServerEventUri = stream_server_credentials.stream_server_event_uri || null //streamServerAudioUri;
 
-		if (switchboardVideoUri == null) {
+		if (this.streamServerVideoUri == null) {
 			this.videoStream = null;
 		}
 		else {
-			this.videoStream = new StreamServer(switchboardVideoUri,
-				switchboardVideoServerCertHash,
+			this.videoStream = new StreamServer(this.streamServerVideoUri,
+				stream_server_credentials.stream_server_video_server_cert_hash,
 				new ConferenceStreamParser(1024 * 1024),
 				{
 					initUnidirectionalStreamWriter: false,
 					initUnidirectionalStreamReader: false
 				});
 		}
-		// this.videoStream = new StreamServer(switchboardVideoUri,
-		// 	switchboardVideoServerCertHash,
-		// 	new ConferenceStreamParser(1024 * 1024),
-		// 	{
-		// 		initUnidirectionalStreamWriter: false,
-		// 		initUnidirectionalStreamReader: false
-		// 	});
 
-		if (switchboardAudioUri == null) {
+		if (this.streamServerAudioUri == null) {
 			this.audioStream = null
 		} else {
-			this.audioStream = new StreamServer(switchboardAudioUri,
-				switchboardAudioServerCertHash,
+			this.audioStream = new StreamServer(this.streamServerAudioUri,
+				stream_server_credentials.stream_server_audio_server_cert_hash,
 				new ConferenceStreamParser(1024 * 1024),
 				{
 					initUnidirectionalStreamWriter: false,
@@ -56,6 +50,18 @@ export class ConferenceCall {
 				});
 		};
 
+		if (this.streamServerEventUri == null) {
+			this.eventStream = null;
+		}
+		else {
+			this.eventStream = new StreamServer(this.streamServerEventUri,
+				stream_server_credentials.stream_server_event_server_cert_hash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
+				});
+		}
 
 		this.userStreamCamera = new UserStreamCamera(
 			currentParticipantVideoElement,
@@ -121,6 +127,18 @@ export class ConferenceCall {
 
 				});
 		}
+
+		if (this.eventStream !== null) {
+			this.eventStream.connect()
+				.catch((e) => { console.info(`cannot connect to a server for event streaming error: ${e}`) })
+				.then(() => {
+
+
+					console.info('event stream connected')
+					this.startEventReading();
+
+				});
+		}
 		// this.#sendEvent(`name:${this.currentParticipantName}`);
 	}
 
@@ -134,6 +152,10 @@ export class ConferenceCall {
 
 		if (this.audioStream !== null) {
 			this.audioStream.disconnect('user_ended_call');
+		};
+
+		if (this.eventStream !== null) {
+			this.eventStream.disconnect('user_ended_call');
 		};
 
 		eventDispatcher.emit("conference-call-ended", { reason: 'reason' })
@@ -163,7 +185,7 @@ export class ConferenceCall {
 
 		encodeEvent({ eventName: "NameIsSet", name: "Alex" }).then(finalBuffer => {
 
-			this.audioStream.write(finalBuffer);
+			this.eventStream.write(finalBuffer);
 
 
 		}).catch((e) => {
@@ -176,10 +198,10 @@ export class ConferenceCall {
 	}
 
 
-	async #processEvent(participantId, event) {
+	async #processEvent(event) {
 		switch (event.eventName) {
 			case "NameIsSet":
-				this.participantManager.renameParticipant(participantId, event.name);
+				this.participantManager.renameParticipant(event.participantId, event.name);
 				break;
 
 			default:
@@ -222,13 +244,6 @@ export class ConferenceCall {
 				try {
 					const decoded = decodeConferenceVideoChunk(value);
 					this.participantManager.playVideo(decoded.participantId, decoded);
-
-					// if (decoded.dataType == "video") {
-					// 	this.participantManager.playVideo(decoded.participantId, decoded);
-					// } else if (decoded.dataType == "close") {
-					// 	// this.soundPlayer.play(decoded.body)
-					// 	console.log(`video closed ${decoded.body}`)
-					// }
 
 				} catch (error) {
 					console.info("Stream Video reader error:", error);
@@ -303,6 +318,24 @@ export class ConferenceCall {
 			}
 
 		})
+	}
+
+	async startEventReading() {
+		this.eventStream.reader((value) => {
+			if (value) {
+				try {
+					const decoded = decodeConferenceEventChunk(value);
+
+					console.log(decoded)
+
+					this.#processEvent(decoded);
+
+				} catch (error) {
+					console.info("Stream Video reader error:", error);
+				}
+
+			}
+		});
 	}
 
 

@@ -5,10 +5,12 @@ import baseApi from './baseApi'
 // method: post
 // params: password - optional, link_id - required
 // response {
-//   "switchboard_video_uri": string,
-//   "switchboard_video_server_cert_hash": string,
-//   "switchboard_audio_uri": string,
-//   "switchboard_audio_server_cert_hash": string
+//   "stream_server_video_uri": string,
+//   "stream_server_video_server_cert_hash": string,
+//   "stream_server_audio_uri": string,
+//   "stream_server_audio_server_cert_hash": string,
+//   "stream_server_event_uri": string,
+//   "stream_server_event_server_cert_hash": string
 // }
 
 export const publicSharedLinkConferenceCredentialsApi = (params) => {
