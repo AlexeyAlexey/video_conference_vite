@@ -6,7 +6,7 @@ import { eventDispatcher } from '@/eventDispatcher.js';
 
 class UserStreamCameraVideo {
 
-  constructor(mediaStream, audioStream, settings = { codec: 'vp8' }) {
+  constructor(mediaStream, videoStream, settings = { codec: 'vp8' }) {
     this.encoder = null;
     this.processor = null;
     this.reader = null;
@@ -16,7 +16,7 @@ class UserStreamCameraVideo {
     this.running = false;
     // this.codec = settings.codec;
     this.mediaStream = mediaStream;
-    this.audioStream = audioStream;
+    this.videoStream = videoStream;
     this.settings = settings;
     this.videoEnabled = settings.videoEnabled;
     this.configure = {}
@@ -217,7 +217,7 @@ class UserStreamCameraVideo {
         body: u8
       }).then(finalBuffer => {
 
-        this.audioStream(finalBuffer)
+        this.videoStream(finalBuffer)
 
       }).catch((e) => {
         console.error('Error encodeChunk: ', e);
@@ -450,10 +450,11 @@ export class UserStreamCamera {
 
   stopVideo() {
     this.runVideo = false;
-    this.audioEnabled = false;
+    this.videoEnabled = false;
 
     this.videoProcessor?.abort();
     this.videoProcessor = null;
+    this.videoStream = null;
 
     return true
   }

@@ -20,6 +20,10 @@ export class StreamServer {
     this.unidirectionalStreamReader = Promise.withResolvers();
   }
 
+  isConnected() {
+    this.connected
+  }
+
   _cleanup() {
     if (this.streamServer) {
       this.streamServer.close();

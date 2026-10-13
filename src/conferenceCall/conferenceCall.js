@@ -25,43 +25,18 @@ export class ConferenceCall {
 		this.streamServerAudioUri = stream_server_credentials.stream_server_audio_uri || null //streamServerAudioUri;
 		this.streamServerEventUri = stream_server_credentials.stream_server_event_uri || null //streamServerAudioUri;
 
-		if (this.streamServerVideoUri == null) {
-			this.videoStream = null;
-		}
-		else {
-			this.videoStream = new StreamServer(this.streamServerVideoUri,
-				stream_server_credentials.stream_server_video_server_cert_hash,
-				new ConferenceStreamParser(1024 * 1024),
-				{
-					initUnidirectionalStreamWriter: false,
-					initUnidirectionalStreamReader: false
-				});
-		}
 
-		if (this.streamServerAudioUri == null) {
-			this.audioStream = null
-		} else {
-			this.audioStream = new StreamServer(this.streamServerAudioUri,
-				stream_server_credentials.stream_server_audio_server_cert_hash,
-				new ConferenceStreamParser(1024 * 1024),
-				{
-					initUnidirectionalStreamWriter: false,
-					initUnidirectionalStreamReader: false
-				});
-		};
+		this.streamServerVideoCertHash = stream_server_credentials.stream_server_video_server_cert_hash || null //streamServerAudioUri;
+		this.streamServerAudioCertHash = stream_server_credentials.stream_server_audio_server_cert_hash || null //streamServerAudioUri;
+		this.streamServerEventCertHash = stream_server_credentials.stream_server_event_server_cert_hash || null //streamServerAudioUri;
 
-		if (this.streamServerEventUri == null) {
-			this.eventStream = null;
-		}
-		else {
-			this.eventStream = new StreamServer(this.streamServerEventUri,
-				stream_server_credentials.stream_server_event_server_cert_hash,
-				new ConferenceStreamParser(1024 * 1024),
-				{
-					initUnidirectionalStreamWriter: false,
-					initUnidirectionalStreamReader: false
-				});
-		}
+		this.videoStream = null;
+		this.audioStream = null;
+		this.eventStream = null;
+
+		// this.initVideoStream();
+		this.initAudioStream();
+		this.initEventStream();
 
 		this.userStreamCamera = new UserStreamCamera(
 			currentParticipantVideoElement,
@@ -81,8 +56,13 @@ export class ConferenceCall {
 			{ audioEnabled: opts.audioEnabled ?? true }
 		);
 
-		this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
-		this.userStreamCamera.setAudioStream(this.audioStream.write.bind(this.audioStream));
+		if (this.videoStream) {
+			this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
+		}
+
+		if (this.audioStream) {
+			this.userStreamCamera.setAudioStream(this.audioStream.write.bind(this.audioStream));
+		}
 
 		this.soundPlayer = new SoundPlayer()
 
@@ -92,25 +72,52 @@ export class ConferenceCall {
 
 	}
 
-	start() {
-		if (this.videoStream !== null) {
-			this.videoStream.connect()
-				.catch((e) => { console.info(`cannot connect to a server for video streaming error: ${e}`) })
-				.then(() => {
+	initVideoStream() {
+		if (this.videoStream) return
 
-					console.info('connected to a server to stream video');
-
-
-					this.userStreamCamera.startVideo();
-
-					this.startVideoReading();
-
-
-					// this.startUnidirectionalVideoReading();
-
-
+		if (this.streamServerVideoUri) {
+			this.videoStream = new StreamServer(this.streamServerVideoUri,
+				this.streamServerVideoCertHash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
 				});
+		}
+	}
+
+	initAudioStream() {
+		if (this.audioStream) return
+
+		if (this.streamServerAudioUri) {
+			this.audioStream = new StreamServer(this.streamServerAudioUri,
+				this.streamServerAudioCertHash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
+				});
+
 		};
+	}
+
+	initEventStream() {
+		if (this.eventStream) return
+
+		if (this.streamServerEventUri) {
+
+			this.eventStream = new StreamServer(this.streamServerEventUri,
+				this.streamServerEventCertHash,
+				new ConferenceStreamParser(1024 * 1024),
+				{
+					initUnidirectionalStreamWriter: false,
+					initUnidirectionalStreamReader: false
+				});
+		}
+	}
+
+	start() {
+		this.startVideoStream();
 
 		if (this.audioStream !== null) {
 			this.audioStream.connect()
@@ -162,15 +169,54 @@ export class ConferenceCall {
 
 	}
 
+	startVideoStream() {
+		if (this.videoStream == null) return
+
+		this.videoStream.connect()
+			.catch((e) => { console.info(`cannot connect to a server for video streaming error: ${e}`) })
+			.then(() => {
+
+				console.info('connected to a server to stream video');
+
+
+				this.userStreamCamera.startVideo();
+
+				this.startVideoReading();
+
+
+				// this.startUnidirectionalVideoReading();
+
+
+			});
+	}
+
+	enableVideoStream() {
+		this.initVideoStream();
+		this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
+		this.startVideoStream();
+	}
+
+	disableVideoStream() {
+		this.userStreamCamera.stopVideo();
+		this.videoStream.disconnect();
+
+		this.videoStream = null;
+	}
+
 	enableVideo() {
-		// this.userStreamCamera.enableVideo();
-		// this.userStreamCamera.startVideo();
+		// this.initVideoStream();
+		// this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
+		// this.startVideoStream();
 		this.userStreamCamera.enableVideo();
+
 	}
 
 	disableVideo() {
 		this.userStreamCamera.disableVideo();
 		// this.userStreamCamera.stopVideo();
+		// this.videoStream.disconnect();
+
+		// this.videoStream = null;
 	}
 
 	enableAudio() {

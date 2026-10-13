@@ -20,12 +20,16 @@ export default function template(props = {}) {
   const ariaStatus = document.getElementById('ariaStatus');
   const localVideo = document.getElementById('localVideo');
   const dockEl = document.getElementById('controlDock');
+  const toggleVideoStreamBtn = document.getElementById('btnToggleVideoStream');
+  const iconVideoStreamOn = document.getElementById('iconVideoStreamOn');
+  const iconVideoStreamOff = document.getElementById('iconVideoStreamOff');
   const iconCamOn = document.getElementById('iconCamOn');
   const iconCamOff = document.getElementById('iconCamOff');
   const iconMicOn = document.getElementById('iconMicOn');
   const iconMicOff = document.getElementById('iconMicOff');
 
   let isCameraOn = false;
+  let isVideoStreamOn = true;
   let isMicOn = true;
   let participantCount = 1;
 
@@ -191,7 +195,7 @@ export default function template(props = {}) {
 
     conferenceCall.start();
 
-    // conferenceCall.enableVideo();
+    if (isVideoStreamOn) { conferenceCall.enableVideoStream() };
     conferenceCall.enableAudio();
 
     hideGate();
@@ -252,22 +256,51 @@ export default function template(props = {}) {
   checkSharedLinkInfo();
 
 
+  function updateToggleUI(btn, iconOn, iconOff, isOn) {
+    if (!btn) return;
+    btn.setAttribute('aria-pressed', String(isOn));
+    btn.classList.toggle('btn-ghost', !isOn);
+    if (iconOn && iconOff) {
+      iconOn.classList.toggle('hidden', !isOn);
+      iconOff.classList.toggle('hidden', isOn);
+    }
+  }
+
+  function toggleVideoStream(btn, iconOn, iconOff, isOn) {
+    isOn = !isOn;
+    updateToggleUI(btn, iconOn, iconOff, isOn);
+    if (isOn) {
+      if (conferenceCall) { conferenceCall.enableVideoStream() };
+    } else {
+      if (conferenceCall) { conferenceCall.disableVideoStream() };
+
+    }
+    // announce(isOn ? 'Camera on' : 'Camera off');
+    return isOn;
+  }
+
+  function toggleVideo(btn, iconOn, iconOff, isOn) {
+    isOn = !isOn;
+    updateToggleUI(btn, iconOn, iconOff, isOn);
+    if (isOn) {
+      if (conferenceCall) { conferenceCall.enableVideo() };
+    } else {
+      if (conferenceCall) { conferenceCall.disableVideo() };
+
+    }
+    // announce(isOn ? 'Camera on' : 'Camera off');
+    return isOn;
+  }
+
   if (toggleCamBtn) {
     toggleCamBtn.addEventListener('click', () => {
-      isCameraOn = !isCameraOn;
-      toggleCamBtn.setAttribute('aria-pressed', String(isCameraOn));
-      toggleCamBtn.classList.toggle('btn-ghost', !isCameraOn);
-      if (iconCamOn && iconCamOff) {
-        iconCamOn.classList.toggle('hidden', !isCameraOn);
-        iconCamOff.classList.toggle('hidden', isCameraOn);
-      }
-      if (isCameraOn) {
-        if (conferenceCall) { conferenceCall.enableVideo() };
-      } else {
-        if (conferenceCall) { conferenceCall.disableVideo() };
+      isCameraOn = toggleVideo(toggleCamBtn, iconCamOn, iconCamOff, isCameraOn);
+    });
+  }
 
-      }
-      // announce(isCameraOn ? 'Camera on' : 'Camera off');
+  if (toggleVideoStreamBtn) {
+    toggleVideoStreamBtn.addEventListener('click', () => {
+      isVideoStreamOn = toggleVideoStream(toggleVideoStreamBtn, iconVideoStreamOn, iconVideoStreamOff, isVideoStreamOn);
     });
   }
 

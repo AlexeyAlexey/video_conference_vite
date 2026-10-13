@@ -3,6 +3,8 @@ import html from '@/pages/sharedLinkCall/sharedLinkCall.template.html?tpl'
 import js from '@/pages/sharedLinkCall/sharedLinkCall.template.js'
 import { render } from '@/router.js'
 import { authenticated } from '@/authenticated.js'
+import videoStreamIconOn from '@/assets/video-stream-bidirectional.svg'
+import videoStreamIconOff from '@/assets/video-stream-bidirectional-off.svg'
 
 
 export class SharedLinkCallController extends Controller {
@@ -15,7 +17,7 @@ export class SharedLinkCallController extends Controller {
   }
 
   draw() {
-    document.querySelector('#app').innerHTML = html(this.opts);
+    document.querySelector('#app').innerHTML = html({ ...this.opts, videoStreamIconOn, videoStreamIconOff });
 
     js(this.opts);
   }
