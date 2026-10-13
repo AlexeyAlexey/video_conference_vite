@@ -204,19 +204,11 @@ export class ConferenceCall {
 	}
 
 	enableVideo() {
-		// this.initVideoStream();
-		// this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
-		// this.startVideoStream();
 		this.userStreamCamera.enableVideo();
-
 	}
 
 	disableVideo() {
 		this.userStreamCamera.disableVideo();
-		// this.userStreamCamera.stopVideo();
-		// this.videoStream.disconnect();
-
-		// this.videoStream = null;
 	}
 
 	enableAudio() {
@@ -245,9 +237,15 @@ export class ConferenceCall {
 
 
 	async #processEvent(event) {
-		switch (event.eventName) {
+
+		switch (event.event_name) {
 			case "NameIsSet":
 				this.participantManager.renameParticipant(event.participantId, event.name);
+				break;
+
+			case "participant_left":
+				this.participantManager.remove(event.participant_id);
+
 				break;
 
 			default:
@@ -372,9 +370,7 @@ export class ConferenceCall {
 				try {
 					const decoded = decodeConferenceEventChunk(value);
 
-					console.log(decoded)
-
-					this.#processEvent(decoded);
+					this.#processEvent(decoded.body);
 
 				} catch (error) {
 					console.info("Stream Video reader error:", error);
