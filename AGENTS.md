@@ -186,6 +186,23 @@ conference.playAudio(participantId, chunk)
 - `src/conferenceCall/conferenceParticipantManager.js` - Manages participant map
 - `src/conferenceCall/conferenceViewParticipantManager.js` - UI view management
 
+**Conference Call Page (`src/pages/sharedLinkCall/`):**
+
+Control dock buttons (all toggle independently, each keeps its own on/off state):
+
+| Button | Icons | Callback |
+|--------|-------|----------|
+| `btnToggleVideoStream` | `iconVideoStreamOn` / `iconVideoStreamOff` | `conferenceCall.enableVideoStream()` / `disableVideoStream()` — **on by default** |
+| `btnToggleCamera` | `iconCamOn` / `iconCamOff` | `conferenceCall.enableVideo()` / `disableVideo()` — local capture only |
+| `btnToggleMic` | `iconMicOn` / `iconMicOff` | `conferenceCall.enableAudio()` / `disableAudio()` |
+| `btnHangup` | — | leaves the call |
+
+- Shared helpers in `sharedLinkCall.template.js`: `updateToggleUI(btn, iconOn, iconOff, isOn)` (aria-pressed + `btn-ghost` + icon swap), `toggleVideo()` / `toggleVideoStream()` wrap it and call the conference callback.
+- `joinConference()` calls `conferenceCall.enableVideoStream()` when `isVideoStreamOn` is true.
+- **Stream vs camera:** `enableVideoStream()` lazily creates + connects the video `StreamServer` (WebTransport), calls `setVideoStream`, and starts `startVideoReading()` — it opens the whole bidirectional channel. `enableVideo()` only gates capture (`userStreamCamera.enableVideo()`). Disabling the stream calls `stopVideo()` + `disconnect()` and nulls `videoStream`; audio/event streams are created eagerly in the constructor.
+
+**Asset icons:** SVGs live in `src/assets/` (e.g. `video-stream-bidirectional.svg`, `video-stream-bidirectional-off.svg`). Import them as URLs in the controller and pass to the template via props — the `?tpl` plugin escapes interpolations, so `${props.iconUrl}` is safe inside `<img src>`.
+
 ### Authentication & Storage
 
 ```javascript

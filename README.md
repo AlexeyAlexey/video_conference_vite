@@ -14,6 +14,7 @@ This is the frontend for the [Video Conference app](https://github.com/AlexeyAle
 
 - **One-to-one video calls** with live camera/mic, draggable self-view, and a call timer.
 - **Shared conference links** — generate a link, optionally protect it with a password, rename it, copy it, or remove it (swipe-to-delete).
+- **Conference calls** — multi-participant tiles, draggable self-view, and a control dock with independent toggles: microphone, camera, and **video stream** (send/receive, on by default).
 - **Phone book / contacts** with search and swipe-to-remove.
 - **Incoming-call notifications** with answer/decline actions and a ringtone.
 - **Responsive UI** (mobile + desktop) built with **Tailwind CSS + DaisyUI**.
@@ -75,6 +76,9 @@ This is the frontend for the [Video Conference app](https://github.com/AlexeyAle
 
 **Shared conference link — password to join**
 ![shared conference link password to join](github_imgs/shared-conference-link-password-to-join.png)
+
+**Conference call — control dock with video stream, camera, mic, and hang-up**
+![shared link call page](github_imgs/shared-link-call-page.png)
 
 ---
 
@@ -208,6 +212,15 @@ offset  size  field
 
 `decodeConferenceChunk` reads the `participantId` and `chunkType`, then delegates the rest to the same `decodeAudioChunk` / `decodeVideoChunk` / `decodeEvent` helpers used for one-to-one calls, and attaches `participantId` to the result.
 
+The conference page (`src/pages/sharedLinkCall/`) has a control dock with four buttons:
+
+- **Video stream** (`btnToggleVideoStream`) — opens/closes the **bidirectional video channel** via `conferenceCall.enableVideoStream()` / `disableVideoStream()`. Enabling lazily creates the video `StreamServer` (WebTransport), connects it, wires the camera encoder output into it (`setVideoStream`), and starts the read loop that feeds remote participant tiles — so it controls *sending and receiving at the same time* (what the two opposed arrows in the icon mean). Disabling stops local capture (`stopVideo`), disconnects the transport, and tears the stream down (`videoStream = null`), so remote tiles stop receiving from you and you stop receiving from them. On by default — `joinConference()` calls `enableVideoStream()` right after `start()`. Icons: `src/assets/video-stream-bidirectional.svg` / `video-stream-bidirectional-off.svg`.
+- **Camera** (`btnToggleCamera`) — toggles only **local capture** (`conferenceCall.enableVideo()` → `userStreamCamera.enableVideo()` / `disableVideo()`): whether camera frames are encoded into the already-open stream. Works independently — turning the camera off keeps the video channel connected (remote tiles just get no frames from you); turning the stream off disconnects the channel entirely.
+- **Microphone** (`btnToggleMic`) — `enableAudio()` / `disableAudio()`.
+- **Hang up** (`btnHangup`) — leaves the call.
+
+Icons in `src/assets/` are imported as URLs in the controller and passed to the template as props (`html({ ...this.opts, videoStreamIconOn, videoStreamIconOff })`), then rendered with `<img>` inside the button.
+
 ---
 
 ## Project structure
@@ -229,6 +242,7 @@ src/
   channels/               # Phoenix channels (phone, …)
   api/                    # REST API clients (auth, phone book, shared links)
   notifications/          # incoming-call toast
+  assets/                 # svg icons (e.g. video-stream-bidirectional*.svg)
   pages/                  # one folder per route (controller + template)
   utils/                  # binary protocol encode/decode helpers
     encodeVideoChunk.js / decodeVideoChunk.js
