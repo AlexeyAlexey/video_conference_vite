@@ -83,6 +83,8 @@ export class ConferenceCall {
 					initUnidirectionalStreamWriter: false,
 					initUnidirectionalStreamReader: false
 				});
+		} else {
+			console.error("Video Stream cannot be initialized. streamServerVideoUri is not setup")
 		}
 	}
 
@@ -192,8 +194,14 @@ export class ConferenceCall {
 
 	enableVideoStream() {
 		this.initVideoStream();
-		this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
-		this.startVideoStream();
+		if (this.videoStream) {
+			this.userStreamCamera.setVideoStream(this.videoStream.write.bind(this.videoStream));
+			this.startVideoStream();
+		} else {
+			console.error("VideoStream cannot be enabled")
+
+		}
+
 	}
 
 	disableVideoStream() {
