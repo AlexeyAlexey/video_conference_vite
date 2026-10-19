@@ -212,6 +212,7 @@ export class ConferenceCall {
 	}
 
 	enableVideo() {
+		this.#sendEvent({});
 		this.userStreamCamera.enableVideo();
 	}
 
@@ -231,6 +232,7 @@ export class ConferenceCall {
 
 		encodeEvent({ eventName: "NameIsSet", name: "Alex" }).then(finalBuffer => {
 
+			console.log(finalBuffer)
 			this.eventStream.write(finalBuffer);
 
 
