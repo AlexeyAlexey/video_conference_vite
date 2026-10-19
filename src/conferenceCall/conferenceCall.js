@@ -380,6 +380,9 @@ export class ConferenceCall {
 				try {
 					const decoded = decodeConferenceEventChunk(value);
 
+					// Remove after debuging
+					console.log(decoded);
+
 					this.#processEvent(decoded.body);
 
 				} catch (error) {
