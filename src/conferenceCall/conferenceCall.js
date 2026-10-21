@@ -13,6 +13,9 @@ import { eventDispatcher } from '@/eventDispatcher.js'
 import { ConferenceStreamParser } from "@/conferenceCall/conferenceStreamParser.js"
 import { ConferenceParticipantManager } from "@/conferenceCall/conferenceParticipantManager.js"
 
+import { HealthCheck } from '@/healthCheck.js';
+
+
 export class ConferenceCall {
 	constructor(
 		stream_server_credentials = {},
@@ -69,6 +72,9 @@ export class ConferenceCall {
 		this.currentParticipantName = currentParticipantName || "";
 		this.viewParticipantManager = viewParticipantManager;
 		this.participantManager = new ConferenceParticipantManager(viewParticipantManager)
+
+		this.healthCheck = new HealthCheck('conferenceCall startVideoReading');
+
 
 	}
 
@@ -297,6 +303,10 @@ export class ConferenceCall {
 			if (value) {
 				try {
 					const decoded = decodeConferenceVideoChunk(value);
+
+					this.healthCheck.update();
+
+
 					this.participantManager.playVideo(decoded.participantId, decoded);
 
 				} catch (error) {
