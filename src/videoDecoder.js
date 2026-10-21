@@ -1,15 +1,17 @@
+import { CircularQueue } from '@/circularQueue.js';
+
+
 export class VideoChunkDecoder {
-  constructor({ videoElement, writable, maxQueue = 10, lossRate = 0 }) {
+  constructor({ videoElement, writable, maxQueue = 50, lossRate = 0 }) {
     this.videoElement = videoElement || null;
     this.externalWritable = writable || null;
-    this.maxQueue = maxQueue;
     this.lossRate = lossRate;
     this.decoder = null;
     this.trackGen = null;
     this.writer = null;
-    // TODO replace it by Queue
-    // current implementation O(n)
-    this.queue = [];
+
+    this.maxQueue = maxQueue;
+    this.circularQueue = new CircularQueue(maxQueue);
     this.processing = false;
   }
 
@@ -64,24 +66,24 @@ export class VideoChunkDecoder {
     if (this.processing) return;
     this.processing = true;
     try {
-      while (this.queue.length) {
-        const decodedChunk = this.queue.shift();
+      while (!this.circularQueue.isEmpty()) {
+        const decodedChunk = this.circularQueue.dequeue();
         this.process(decodedChunk);
         await Promise.resolve();
       }
     } finally {
       this.processing = false;
-      if (this.queue.length) this._pump();
+      if (!this.circularQueue.isEmpty()) this._pump();
     }
   }
 
   // enqueue(data, { timestamp = 0, isDelta = false, seq = 0 } = {}) {
   enqueue(decodedChunk) {
-    if (this.queue.length >= this.maxQueue) {
-      if (decodedChunk.isDelta) return;
-      this.queue = [];
-    }
-    this.queue.push(decodedChunk);
+    // if (this.queue.length >= this.maxQueue) {
+    //   if (decodedChunk.isDelta) return;
+    //   this.queue = [];
+    // }
+    this.circularQueue.enqueue(decodedChunk);
     this._pump();
   }
 
@@ -119,7 +121,7 @@ export class VideoChunkDecoder {
     } else {
       this.writer = null;
     }
-    this.queue = [];
+    this.circularQueue = new CircularQueue(this.maxQueue);
     this.processing = false;
   }
 

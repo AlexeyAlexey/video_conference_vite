@@ -1,12 +1,17 @@
 import pcmPlayerProcessorUrl from './pcm-player-processor.js?&url'
+import { CircularQueue } from '@/circularQueue.js';
 
 export class AudioChunkDecoder {
-  constructor({ audioContext = null } = {}) {
+  constructor({ audioContext = null } = {}, maxQueue = 50) {
     this.ctx = audioContext || null;
     this.node = null;
     this.decoder = null;
     this.initialized = false;
     this.configured = false;
+    this.processing = false;
+
+    this.maxQueue = maxQueue;
+    this.circularQueue = new CircularQueue(maxQueue);
   }
 
   async init() {
@@ -71,7 +76,22 @@ export class AudioChunkDecoder {
     }
   }
 
-  enqueue(data) {
+  async _pump() {
+    if (this.processing) return;
+    this.processing = true;
+    try {
+      while (!this.circularQueue.isEmpty()) {
+        const decodedChunk = this.circularQueue.dequeue();
+        this.process(decodedChunk);
+        await Promise.resolve();
+      }
+    } finally {
+      this.processing = false;
+      if (!this.circularQueue.isEmpty()) this._pump();
+    }
+  }
+
+  process(data) {
     if (!this.decoder || this.decoder.state !== 'configured') return;
     try {
 
@@ -84,6 +104,11 @@ export class AudioChunkDecoder {
     }
   }
 
+  enqueue(decodedChunk) {
+    this.circularQueue.enqueue(decodedChunk);
+    this._pump();
+  }
+
   async reset() {
     try { await this.decoder?.flush(); } catch { }
     try { this.decoder?.close(); } catch { }
@@ -94,6 +119,9 @@ export class AudioChunkDecoder {
     this.ctx = null;
     this.initialized = false;
     this.configured = false;
+
+    this.circularQueue = new CircularQueue(this.maxQueue);
+    this.processing = false;
   }
 }
 
