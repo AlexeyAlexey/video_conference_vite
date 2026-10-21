@@ -1,3 +1,6 @@
+import { HealthCheck } from '@/healthCheck.js';
+
+
 export class ConferenceStreamParser {
   constructor(initialCapacity = 65536) { // 64KB
     this.buffer = new Uint8Array(initialCapacity);
@@ -6,6 +9,8 @@ export class ConferenceStreamParser {
     this.MAGIC_1 = 83; // 'S'
     this.MAGIC_2 = 69; // 'E'
     this.HEADER_SIZE = 7; // 3 byte marker + 4 byte payload length
+    this.healthCheck = new HealthCheck('ConferenceStreamParser');
+
   }
 
   reset() {
@@ -13,6 +18,7 @@ export class ConferenceStreamParser {
   }
 
   transform(chunk, controller) {
+    this.healthCheck.update();
     // Increasing buffer size if it is required
     if (this.offset + chunk.length > this.buffer.length) {
       let newBuffer = new Uint8Array(Math.max(this.buffer.length * 2, this.offset + chunk.length));

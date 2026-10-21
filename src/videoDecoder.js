@@ -1,6 +1,4 @@
 import { CircularQueue } from '@/circularQueue.js';
-import { HealthCheck } from '@/healthCheck.js';
-
 
 export class VideoChunkDecoder {
   constructor({ videoElement, writable, maxQueue = 50, lossRate = 0 }) {
@@ -15,7 +13,6 @@ export class VideoChunkDecoder {
     this.circularQueue = new CircularQueue(maxQueue);
     this.processing = false;
 
-    this.healthCheck = new HealthCheck('video enqueue');
   }
 
   configure(config) {
@@ -86,8 +83,6 @@ export class VideoChunkDecoder {
     //   if (decodedChunk.isDelta) return;
     //   this.queue = [];
     // }
-    this.healthCheck.update();
-
     this.circularQueue.enqueue(decodedChunk);
     this._pump();
   }
