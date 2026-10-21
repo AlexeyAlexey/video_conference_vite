@@ -195,6 +195,12 @@ Each packet is framed as:
 
 `ConferenceStreamParser` reassembles the raw WebTransport byte stream into these packets and hands the **payload** (everything after the 7-byte framing) to the decoder.
 
+The parser is bounded and self-resyncing:
+
+- **`maxBufferSize`** (constructor arg 1, default 1 MB) caps how much unframed data can be buffered. When appending a chunk would exceed it, buffered bytes are dropped up to the next `MSE` marker; if the chunk alone is too large, only its newest tail is kept.
+- **`maxPayloadSize`** (constructor arg 2, defaults to `maxBufferSize`) caps the declared payload length. A frame whose header claims a bigger payload — or one that can never fit in the buffer — is treated as corrupt: its marker is skipped and scanning resumes at the next byte.
+- If no `MSE` marker is found before the tail of the buffer, the last 2 bytes are kept because they may be the `M`,`S` of a marker split across chunks.
+
 The payload is the one-to-one media payload **prefixed with a 4-byte participant id**:
 
 ```
@@ -263,6 +269,18 @@ npm install
 npm run dev        # start the Vite dev server (http://localhost:5173)
 npm run build      # production build
 npm run preview    # preview the production build
+npm test           # run the test suite once (Vitest)
+```
+
+### Tests
+
+Tests use [Vitest](https://vitest.dev) and live next to the code they cover
+(e.g. `src/conferenceCall/conferenceStreamParser.test.js`).
+
+```bash
+npm test           # run all tests once
+npx vitest         # watch mode, re-runs tests on change
+npx vitest run src/conferenceCall/conferenceStreamParser.test.js  # single file
 ```
 
 ### Environment variables

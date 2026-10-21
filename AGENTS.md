@@ -10,6 +10,7 @@ This is a **Video Conference PWA** built with Vite + Vanilla JS. It uses Phoenix
 - **Real-time:** Phoenix Channels (WebSocket)
 - **Streaming:** WebTransport API + WebCodecs API
 - **Mobile:** Capacitor 8.x (Android)
+- **Testing:** Vitest 5.x
 
 ## Architecture
 
@@ -254,6 +255,7 @@ await fetchPost('/endpoint', body)
    - Templates: `*.template.html`, `*.template.js`
    - APIs: `*Api.js` (lowercase function names)
    - Channels: `src/channels/*.js`
+   - Tests: `*.test.js` colocated next to the file under test (Vitest)
 
 ## Important Notes for AI Agents
 
@@ -280,8 +282,20 @@ await fetchPost('/endpoint', body)
 ### Modifying Stream Protocol
 
 1. Update magic bytes in parser
-2. Modify header structure in `streamMessageParser.js`
+2. Modify header structure in `streamMessageParser.js` / `conferenceStreamParser.js`
 3. Ensure encoder/decoder match the format
+
+**`ConferenceStreamParser` limits:** `new ConferenceStreamParser(maxBufferSize, maxPayloadSize, initialCapacity)` — `maxBufferSize` (callers use `1024 * 1024`) caps buffered unframed data; on overflow the parser drops bytes up to the next `MSE` marker and resyncs. `maxPayloadSize` (defaults to `maxBufferSize`) caps the declared payload length; oversized frames are skipped as corrupt. Update `conferenceStreamParser.test.js` if framing changes.
+
+### Running Tests
+
+```bash
+npm test           # run all tests once (vitest run)
+npx vitest         # watch mode
+npx vitest run <file>  # single test file
+```
+
+Tests use Vitest and are colocated as `*.test.js` next to the code (e.g. `src/conferenceCall/conferenceStreamParser.test.js`). The `@` alias from `vite.config.js` resolves in tests automatically.
 
 ### Adding New WebSocket Event
 
