@@ -1,5 +1,6 @@
-import { Socket } from "phoenix"
 import { StreamMessageParser } from "@/streamMessageParser.js"
+
+//TODO add CircleQueue for write function ?
 
 export class StreamServer {
   constructor(uri, streamServerCertHash, streamParser = null, opts = {}) {
@@ -18,6 +19,10 @@ export class StreamServer {
     this.streamReader = Promise.withResolvers();
     this.unidirectionalStreamWriter = Promise.withResolvers();
     this.unidirectionalStreamReader = Promise.withResolvers();
+
+    this.healthCheck1 = new HealthCheck('stream writer 1');
+    this.healthCheck2 = new HealthCheck('stream writer 2');
+    this.healthCheck3 = new HealthCheck('stream writer 3');
   }
 
   isConnected() {
@@ -147,9 +152,15 @@ export class StreamServer {
     if (this.disconnected) return;
 
     try {
+      this.healthCheck1.update()
       const writer = await this.streamWriter.promise;
 
+      this.healthCheck2.update()
+
       await writer.write(data);
+
+      this.healthCheck3.update()
+
     } catch (error) {
 
       if (error instanceof WebTransportError && error.message === 'Received STOP_SENDING.') {
