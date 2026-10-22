@@ -84,7 +84,7 @@ export class ConferenceCall {
 		if (this.streamServerVideoUri) {
 			this.videoStream = new StreamServer(this.streamServerVideoUri,
 				this.streamServerVideoCertHash,
-				new ConferenceStreamParser(1024 * 1024),
+				new ConferenceStreamParser(1024 * 1024, 40000),
 				{
 					initUnidirectionalStreamWriter: false,
 					initUnidirectionalStreamReader: false
@@ -100,7 +100,7 @@ export class ConferenceCall {
 		if (this.streamServerAudioUri) {
 			this.audioStream = new StreamServer(this.streamServerAudioUri,
 				this.streamServerAudioCertHash,
-				new ConferenceStreamParser(1024 * 1024),
+				new ConferenceStreamParser(1024 * 1024, 500),
 				{
 					initUnidirectionalStreamWriter: false,
 					initUnidirectionalStreamReader: false
