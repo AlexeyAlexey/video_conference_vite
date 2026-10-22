@@ -1,7 +1,8 @@
 import { StreamMessageParser } from "@/streamMessageParser.js"
-import { HealthCheck } from '@/healthCheck.js';
+// import { HealthCheck } from '@/healthCheck.js';
 
-//TODO add CircleQueue for write function ?
+// TODO add CircleQueue for write function
+// TODO add health check to reload connection ?
 
 export class StreamServer {
   constructor(uri, streamServerCertHash, streamParser = null, opts = {}) {
@@ -21,9 +22,7 @@ export class StreamServer {
     this.unidirectionalStreamWriter = Promise.withResolvers();
     this.unidirectionalStreamReader = Promise.withResolvers();
 
-    this.healthCheck1 = new HealthCheck('stream writer 1');
-    this.healthCheck2 = new HealthCheck('stream writer 2');
-    this.healthCheck3 = new HealthCheck('stream writer 3');
+    // this.healthCheck = new HealthCheck('stream writer 1');
   }
 
   isConnected() {
@@ -153,14 +152,9 @@ export class StreamServer {
     if (this.disconnected) return;
 
     try {
-      this.healthCheck1.update()
       const writer = await this.streamWriter.promise;
 
-      this.healthCheck2.update()
-
       await writer.write(data);
-
-      this.healthCheck3.update()
 
     } catch (error) {
 
