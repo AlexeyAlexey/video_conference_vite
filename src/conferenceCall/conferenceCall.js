@@ -73,9 +73,8 @@ export class ConferenceCall {
 		this.viewParticipantManager = viewParticipantManager;
 		this.participantManager = new ConferenceParticipantManager(viewParticipantManager)
 
-		this.healthCheck = new HealthCheck('conferenceCall startVideoReading');
-
-
+		this.healthCheckInputVideo = new HealthCheck('conferenceCall input video stream');
+		this.healthCheckInputAudio = new HealthCheck('conferenceCall input audio stream');
 	}
 
 	initVideoStream() {
@@ -304,7 +303,7 @@ export class ConferenceCall {
 				try {
 					const decoded = decodeConferenceVideoChunk(value);
 
-					this.healthCheck.update();
+					this.healthCheckInputVideo.update();
 
 
 					this.participantManager.playVideo(decoded.participantId, decoded);
@@ -374,6 +373,8 @@ export class ConferenceCall {
 
 			try {
 				const decoded = decodeConferenceAudioChunk(value);
+
+				this.healthCheckInputAudio.update();
 
 				this.participantManager.playAudio(decoded.participantId, decoded);
 
