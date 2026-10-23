@@ -3,7 +3,6 @@ import { CircularQueue } from '@/circularQueue.js';
 
 // import { HealthCheck } from '@/healthCheck.js';
 
-// TODO add CircleQueue for write function
 // TODO add health check to reload connection ?
 
 export class StreamServer {
