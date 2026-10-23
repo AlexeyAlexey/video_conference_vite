@@ -238,7 +238,7 @@ export class ConferenceCall {
 
 		encodeEvent({ eventName: "NameIsSet", name: "Alex" }).then(finalBuffer => {
 
-			console.log(finalBuffer)
+			// console.log(finalBuffer)
 			this.eventStream.write(finalBuffer);
 
 

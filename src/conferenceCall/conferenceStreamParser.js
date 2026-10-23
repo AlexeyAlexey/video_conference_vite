@@ -1,5 +1,3 @@
-import { HealthCheck } from '@/healthCheck.js';
-
 const MAGIC_0 = 77; // 'M'
 const MAGIC_1 = 83; // 'S'
 const MAGIC_2 = 69; // 'E'
@@ -12,8 +10,6 @@ export class ConferenceStreamParser {
     this.maxPayloadSize = maxPayloadSize;
     this.buffer = new Uint8Array(Math.min(initialCapacity, maxBufferSize));
     this.offset = 0;
-    this.healthCheck = new HealthCheck('ConferenceStreamParser');
-    this.healthCheckEnqueue = new HealthCheck('ConferenceStreamParser enqueue');
   }
 
   reset() {
@@ -21,7 +17,6 @@ export class ConferenceStreamParser {
   }
 
   transform(chunk, controller) {
-    this.healthCheck.update();
     this.#append(chunk);
 
     let pos = 0;
@@ -52,7 +47,6 @@ export class ConferenceStreamParser {
       }
 
       // Send only payload from package MSE,payloadLength,payload
-      this.healthCheckEnqueue.update();
       controller.enqueue(this.buffer.slice(pos + HEADER_SIZE, pos + frameSize));
       pos += frameSize; // go to the next possible package
     }

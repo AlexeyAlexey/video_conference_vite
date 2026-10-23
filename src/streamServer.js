@@ -1,4 +1,6 @@
 import { StreamMessageParser } from "@/streamMessageParser.js"
+import { CircularQueue } from '@/circularQueue.js';
+
 // import { HealthCheck } from '@/healthCheck.js';
 
 // TODO add CircleQueue for write function
@@ -12,6 +14,8 @@ export class StreamServer {
     this.streamParser = streamParser || new StreamMessageParser(1024 * 1024);
     this.opts = opts;
 
+    this.maxWriterQueue = opts.maxWriterQueue || 15
+
     this.connected = false;
     this.reconnecting = false;
     this.disconnected = false;
@@ -21,6 +25,8 @@ export class StreamServer {
     this.streamReader = Promise.withResolvers();
     this.unidirectionalStreamWriter = Promise.withResolvers();
     this.unidirectionalStreamReader = Promise.withResolvers();
+
+    this.writerQueue = new CircularQueue(this.maxWriterQueue);
 
     // this.healthCheck = new HealthCheck('stream writer 1');
   }
@@ -97,6 +103,8 @@ export class StreamServer {
       this.connected = true;
       this.reconnecting = false;
 
+      this.#pumpWriter();
+
 
     } catch (error) {
       this.connected = false;
@@ -148,26 +156,41 @@ export class StreamServer {
 
   }
 
-  async write(data) {
-    if (this.disconnected) return;
+  async #pumpWriter() {
+    if (this.disconnected || this.reconnecting) return;
 
-    try {
-      const writer = await this.streamWriter.promise;
+    while (!this.writerQueue.isEmpty()) {
+      try {
+        const data = this.writerQueue.dequeue();
 
-      await writer.write(data);
+        const writer = await this.streamWriter.promise;
 
-    } catch (error) {
+        await writer.write(data);
 
-      if (error instanceof WebTransportError && error.message === 'Received STOP_SENDING.') {
-        this.disconnected = true
-        console.info(error);
-      } else {
+      } catch (error) {
 
-        if (this.reconnecting === false && this.disconnected === false) {
-          await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`);
+        if (error instanceof WebTransportError && error.message === 'Received STOP_SENDING.') {
+          this.disconnected = true
+          console.info(error);
+        } else {
+
+          if (this.reconnecting === false && this.disconnected === false) {
+            await this.#reconnect(`Cannot write. Reconnecting... Error: ${error}`);
+          }
         }
+
+        break;
       }
     }
+
+    if (!this.writerQueue.isEmpty()) this.#pumpWriter();
+  }
+
+  write(data) {
+    if (this.disconnected) return;
+
+    this.writerQueue.enqueue(data);
+    this.#pumpWriter();
   }
 
   async unidirectionalWrite(data) {
